@@ -12,8 +12,6 @@
 
 #pragma once
 
-// std::string
-#include <string>
 // std::map
 #include <map>
 // std::unordered_map
@@ -46,10 +44,11 @@ enum class type : std::uint8_t
     array,            ///< array (ordered collection of values)
     object,           ///< object (set of unordered key/value pairs)
     ordered_object,   ///< object (set of ordered key/value pairs)
-    discarded         ///< discarded by the parser callback function
+    discarded,        ///< discarded by the parser callback function
+    uninitialized     ///< uninitialize value_t object
 };
 
-constexpr char *type_names[] = {
+constexpr const char *type_names[] = {
     "null",
     "boolean",
     "string",
@@ -105,15 +104,15 @@ array_t make<array_t>() {
     return {};
 }
 
-template <>
-object_t make<object_t>() {
-    return object_t();
-}
+// template <>
+// object_t make<object_t>() {
+//     return object_t();
+// }
 
-template <>
-ordered_object_t make<ordered_object_t>() {
-    return ordered_object_t();
-}
+// template <>
+// ordered_object_t make<ordered_object_t>() {
+//     return ordered_object_t();
+// }
 
 /*
 
@@ -131,7 +130,7 @@ ordered_object  | ordered_object_t   | pointer to @ref ordered_object_t
 */
 struct value_t {
 public:
-    value_t() : type_(type::null) {};
+    value_t() : type_(type::uninitialized) {};
 
     explicit value_t(const boolean_t& b) : type_(type::boolean), boolean{b} {}
 
@@ -328,6 +327,10 @@ public:
     }
 
     value_t& operator [] (const json_string& key) {
+        if (type_ == type::uninitialized) {
+            type_ = type::ordered_object;
+            ordered_object = new ordered_object_t(ordered_object_t());
+        }
         if (type_ == type::object) {
             auto& _Obj = *object;
             return _Get_or_create(_Obj, key);
@@ -340,6 +343,10 @@ public:
     }
 
     value_t& operator [] (std::size_t index) {
+        if (type_ == type::uninitialized) {
+            type_ = type::array;
+            array = new array_t(array_t());
+        }
         if (type_ == type::array) {
             auto& _Arr = *array;
             if (index >= _Arr.size()) {
@@ -407,10 +414,10 @@ public:
             array = new array_t(make<array_t>());
             break;
         case type::object:
-            object = new object_t(make<object_t>());
+            object = new object_t(object_t());
             break;
         case type::ordered_object:
-            ordered_object = new ordered_object_t(make<ordered_object_t>());
+            ordered_object = new ordered_object_t(ordered_object_t());
             break;
         }
     }
@@ -440,11 +447,22 @@ public:
         _Detor_helper();
     }
 
-    std::string type() const { return type_names[static_cast<std::size_t>(type_)]; }
+    std::string type() {
+        if (type_ == type::uninitialized) {
+            type_ = type::null;
+        }
+        return type_names[static_cast<std::size_t>(type_)]; 
+    }
 
     template <typename _Tp>
     _Tp& get() {
+        if (type_ == type::uninitialized) {
+            type_ = type::null;
+        }
         switch (type_) {
+        case type::null:
+            if constexpr(std::is_pointer<_Tp>::value)
+                return nullptr;
         case type::boolean:
             if constexpr(std::is_same<boolean_t, _Tp>::value)
                 return boolean;
@@ -476,9 +494,12 @@ public:
         throw std::invalid_argument("Type not supported for get function");
     }
 
-    json_string serialize() const {
+    json_string serialize() {
         json_string _Ret;    ///< return value of type::array and type::object
         bool _First = true;  ///< decide wether to add comma in return value of type::array and type::object
+        if (type_ == type::uninitialized) {
+            type_ = type::null;
+        }
         switch (type_) {
         case detail::type::null:
             return "null";
@@ -496,7 +517,7 @@ public:
             return sw::base64_encode(*binary, sizeof(*binary) * 8);
         case detail::type::array:
             _Ret = "[";
-            for (const auto& v : *array) {
+            for (auto& v : *array) {
                 if (!_First) _Ret += ", ";
                 _Ret += v.serialize();
                 _First = false;
@@ -505,7 +526,7 @@ public:
             return _Ret;
         case detail::type::object:
             _Ret = "{";
-            for (const auto& [k, v] : *object) {
+            for (auto& [k, v] : *object) {
                 if (!_First) _Ret += ", ";
                 _Ret += "{\"" + k + "\": " + v.serialize() + "}";
                 _First = false;
@@ -514,7 +535,7 @@ public:
             return _Ret;
         case detail::type::ordered_object:
             _Ret = "{";
-            for (const auto& [k, v] : *ordered_object) {
+            for (auto& [k, v] : *ordered_object) {
                 if (!_First) _Ret += ", ";
                 _Ret += "{\"" + k + "\": " + v.serialize() + "}";
                 _First = false;

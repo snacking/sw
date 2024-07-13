@@ -58,7 +58,7 @@ public:
         return fn(s);
     }
 
-    detail::json_string serialize() const {
+    detail::json_string serialize() {
         return value_.serialize();
     }
 

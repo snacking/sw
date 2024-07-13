@@ -57,6 +57,7 @@ public:
 
     token_type scan() {
         _Skip_whitescape();
+        return token_type::uninitialized;
     }
 private:
     void _Initialize() {
@@ -93,10 +94,10 @@ private:
     }
 
     inline bool _Skip_bom() {
-        if (get() == 0xEF) {
-            return get() == 0xBB && get() == 0xBF;
+        if (_Get() == 0xEF) {
+            return _Get() == 0xBB && _Get() == 0xBF;
         }
-        unget();
+        _Unget();
         return true;
     }
 

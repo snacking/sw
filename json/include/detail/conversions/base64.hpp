@@ -18,7 +18,8 @@
 #include <cstdint>
 // std::string
 #include <string>
-
+// std::remove
+#include <algorithm>
 
 # if __cplusplus >= 201703L
     # include <string_view>
@@ -29,7 +30,7 @@ namespace sw {
 using byte = std::uint8_t;
 using binary_t = std::vector<byte>;
 
-constexpr static char* base64_chars[2] = {
+constexpr static const char* base64_chars[2] = {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789"
@@ -76,26 +77,6 @@ static inline std::string insert_linebreaks(std::string str, std::size_t distanc
 
 // String here could be std::string or std::string_view (Require c++17 or above)
 
-template <typename String, unsigned int line_length>
-static std::string encode_with_line_breaks(String s) {
-    return insert_linebreaks(base64_encode(s, false), line_length);
-}
-
-template <typename String>
-static std::string encode_pem(String s) {
-  return encode_with_line_breaks<String, 64>(s);
-}
-
-template <typename String>
-static std::string encode_mime(String s) {
-  return encode_with_line_breaks<String, 76>(s);
-}
-
-template <typename String>
-static std::string encode(String s, bool url) {
-  return base64_encode(reinterpret_cast<const unsigned char*>(s.data()), s.length(), url);
-}
-
 template <typename Binary>
 std::string base64_encode(Binary bytes_to_encode, size_t in_len, bool url = false) {
 
@@ -138,17 +119,34 @@ std::string base64_encode(Binary bytes_to_encode, size_t in_len, bool url = fals
     return ret;
 }
 
+template <typename String, unsigned int line_length>
+static std::string encode_with_line_breaks(String s) {
+    return insert_linebreaks(base64_encode(s, false), line_length);
+}
+
+template <typename String>
+static std::string encode_pem(String s) {
+  return encode_with_line_breaks<String, 64>(s);
+}
+
+template <typename String>
+static std::string encode_mime(String s) {
+  return encode_with_line_breaks<String, 76>(s);
+}
+
+template <typename String>
+static std::string encode(String s, bool url) {
+  return base64_encode(reinterpret_cast<const unsigned char*>(s.data()), s.length(), url);
+}
+
 template <typename String>
 static std::string decode(String const& encoded_string, bool remove_linebreaks) {
     if (encoded_string.empty()) return std::string();
 
     if (remove_linebreaks) {
-
        std::string copy(encoded_string);
-
        copy.erase(std::remove(copy.begin(), copy.end(), '\n'), copy.end());
-
-       return base64_decode(copy, false);
+       return decode(copy, false);
     }
 
     size_t _Length_of_string = encoded_string.length();
@@ -159,11 +157,8 @@ static std::string decode(String const& encoded_string, bool remove_linebreaks) 
     ret.reserve(approx_length_of_decoded_string);
 
     while (_Pos < _Length_of_string) {
-
        size_t _Pos_of_char_1 = base64_lookup[encoded_string.at(_Pos + 1)];
-
        ret.push_back(static_cast<std::string::value_type>( ( (base64_lookup[encoded_string.at(_Pos + 0)] ) << 2 ) + ( (_Pos_of_char_1 & 0x30 ) >> 4)));
-
        if ((_Pos + 2 < _Length_of_string)       &&
             encoded_string.at(_Pos+2) != '='   &&
             encoded_string.at(_Pos+2) != '.'       
@@ -184,10 +179,6 @@ static std::string decode(String const& encoded_string, bool remove_linebreaks) 
     }
 
     return ret;
-}
-
-std::string base64_decode(std::string const& s, bool remove_linebreaks) {
-   return decode(s, remove_linebreaks);
 }
 
 std::string base64_encode(std::string const& s, bool url) {
