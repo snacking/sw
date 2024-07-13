@@ -78,13 +78,13 @@ private:
             next_unget_ = false;
         } 
         else {
-            current = ia_.get_character();
+            current_ = ia_.get_character();
         }
         if (current_ == '\n') {
             position_.chars_read_current_line = 0;
             ++position_.lines_read;
         }
-        return current;
+        return current_;
     }
 
     void _Unget() {

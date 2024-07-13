@@ -16,7 +16,7 @@
 int main() {
     sw::json j, j1;
     sw::json j2(sw::type::array);
-    j["menu1"]["menu2"]["menu3"] = "hello world";
+    // j["menu1"]["menu2"]["menu3"] = "hello world";
     j["name"] = "tsinghua";
     j["campus"] = (double)1.0;
     j["is_good"] = false;
