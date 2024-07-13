@@ -1,0 +1,2 @@
+/home/sn4ck/workspace/Git/sw/json/build/CMakeFiles/edit_cache.dir
+/home/sn4ck/workspace/Git/sw/json/build/CMakeFiles/rebuild_cache.dir
