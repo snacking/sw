@@ -15,9 +15,10 @@
 
 int main() {
     sw::json j, j1;
+    // std::cout << j.serialize() << std::endl;
     sw::json j2(sw::type::array);
     j["menu1"]["menu2"]["menu3"] = "hello world";
-    // j[0]["123"] = (double)2.0;
+    j["menu2"][0]["123"] = (double)2.0;
     j["name"] = "tsinghua";
     j["campus"] = (double)1.0;
     j["is_good"] = false;

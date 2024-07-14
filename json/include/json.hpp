@@ -36,7 +36,7 @@ public:
     using reverse_iterator = int;
     using const_reverse_iterator = int;
 
-    json() : value_(detail::type::ordered_object) {}
+    json() : value_(detail::type::uninitialized) {}
 
     json(const type& t) {
         switch (t) {
@@ -76,17 +76,11 @@ public:
     }
 
     reference operator [] (const detail::json_string& key) {
-        if (value_.type_ == detail::type::object || value_.type_ == detail::type::ordered_object) {
-            return value_[key];
-        }
-        throw std::runtime_error("invalid type");
+        return value_[key];
     }
 
     reference operator [] (std::size_t index) {
-        if (value_.type_ == detail::type::array) {
-            return value_[index];
-        }
-        throw std::runtime_error("invalid type");
+        return value_[index];
     }
 
     iterator begin() {

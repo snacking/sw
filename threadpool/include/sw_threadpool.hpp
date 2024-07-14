@@ -201,7 +201,7 @@ public:
 	_Leader(::std::shared_ptr<threadpool> ptp) : _Thread_base(), ptp_(ptp) {}
 
 	~_Leader() = default; // nothing
-
+	
 	void run() override {
 	}
 
@@ -231,7 +231,7 @@ public:
 			while (state_ == _State::IDLE) {
 				auto _Success = _Ptp->pqueue_->try_pop(_Task);
 				if (_Success) {
-					break;
+					break;	
 				}
 				_End = ::std::chrono::high_resolution_clock::now();
 				if (::std::chrono::duration_cast<::std::chrono::milliseconds>(_End - _Start).count() > _Ptp->keepalive_time_) {
