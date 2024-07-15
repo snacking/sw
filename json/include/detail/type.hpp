@@ -423,6 +423,16 @@ public:
     }
 
     void _Detor_helper() {
+        if (type_ == type::uninitialized || type_ == type::null ||
+            type_ == type::boolean || type_ == type::number_integer ||
+            type_ == type::number_unsigned || type_ == type::number_float ||
+            type_ == type::string && string == nullptr || 
+            type_ == type::binary && binary == nullptr ||
+            type_ == type::array && array == nullptr ||
+            type_ == type::object && object == nullptr ||
+            type_ == type::ordered_object && ordered_object == nullptr) {
+            return;
+        }
         switch (type_) {
         case type::string:
             delete string;
@@ -431,12 +441,21 @@ public:
             delete binary;
             break;
         case type::array:
+            for (auto& v : *array) {
+                v._Detor_helper(); // put all v into a stack to avoid recursive call. (scheduled)
+            }
             delete array;
             break;
         case type::object:
+            for (auto& [k, v] : *object) {
+                v._Detor_helper(); // put all v into a stack to avoid recursive call. (scheduled)
+            }
             delete object;
             break;
         case type::ordered_object:
+            for (auto& [k, v] : *ordered_object) {
+                v._Detor_helper(); // put all v into a stack to avoid recursive call. (scheduled)
+            }
             delete ordered_object;
             break;
         }
