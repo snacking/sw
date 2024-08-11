@@ -4,8 +4,10 @@
 #define _SW_EPOLL_CORE_H_
 
 #include "../../include/sw_vals.h"
+
 #include <unistd.h>
 #include <sys/epoll.h>
+
 #include <cstddef>
 #include <functional>
 #include <cassert>

@@ -1,3 +1,7 @@
 *.out
 *.obj
 *.exe
+**/build/**
+**/bin/**
+**/tmp/**
+**/temp/**

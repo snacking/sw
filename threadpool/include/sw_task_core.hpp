@@ -4,6 +4,7 @@
 #define _SW_TASK_CORE_H_
 
 #include "../../include/sw_vals.h"
+
 #include <cstdint>
 #include <memory>
 #include <type_traits>

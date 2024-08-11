@@ -546,6 +546,8 @@ public:
         throw std::invalid_argument("Type not supported for serialize");
     }
 
+    #pragma GCC diagnostic push  
+    #pragma GCC diagnostic ignored "-Wsubobject-linkage"
     union {
         boolean_t boolean;
         string_t *string;
@@ -555,6 +557,7 @@ public:
         object_t *object;
         ordered_object_t *ordered_object;
     };
+    #pragma GCC diagnostic pop
     
     sw::detail::type type_; 
 };

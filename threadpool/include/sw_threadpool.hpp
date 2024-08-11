@@ -7,6 +7,7 @@
 #include "./sw_epoll_core.h"
 #include "./sw_queue_core.h"
 #include "./sw_task_core.hpp"
+
 #include <future>
 #include <utility>
 #include <thread>
@@ -27,7 +28,7 @@ class _Thread_base {
 public:
 	using thread_id = ::std::thread::id;
 
-	_Thread_base() : state_(_State::INIT), id_(::std::this_thread::get_id()) {}
+	_Thread_base() : state_(_State::INIT) {}
 
 	virtual ~_Thread_base() = default; // nothing
 
@@ -36,7 +37,7 @@ public:
 	virtual void stop() = 0;
 
 	thread_id get_thread_id() const noexcept {
-		return id_;
+		return ::std::this_thread::get_id();
 	}
 protected:
 	enum class _State : ::std::uint8_t {
@@ -47,8 +48,6 @@ protected:
 		STOPPING,
 		STOPPED
 	} state_;
-
-	thread_id id_;
 };
 
 class _Worker;
@@ -169,9 +168,9 @@ private:
 		);  
         try {
 			pqueue_->push(::std::move(_Task));
-			info_.total_submissions_++;
+			++info_.total_submissions_;
 		} catch (...) {
-			info_.total_rejected_++;
+			++info_.total_rejected_;
 		}
 		return;
 	}
