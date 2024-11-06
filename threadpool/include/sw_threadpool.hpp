@@ -27,11 +27,12 @@ class _Thread_base {
 public:
 	using thread_id = ::std::thread::id;
 
-	_Thread_base() : state_(_State::INIT), id_(::std::this_thread::get_id()) {}
+	_Thread_base() : 
+		state_(_State::IDLE) {}
 
 	virtual ~_Thread_base() = default; // nothing
 
-	virtual void run() = 0;
+	virtual void start() = 0;
 
 	virtual void stop() = 0;
 
@@ -39,8 +40,9 @@ public:
 		return id_;
 	}
 protected:
+	virtual void run() = 0;
+
 	enum class _State : ::std::uint8_t {
-		INIT,
 		IDLE,
 		RUNNING,
 		SLEEPING,
@@ -48,6 +50,7 @@ protected:
 		STOPPED
 	} state_;
 
+	::std::thread thread_;
 	thread_id id_;
 };
 
@@ -104,19 +107,28 @@ public:
 	template <typename _Fn, typename... _Args>  
     void execute(_Fn&& fn, _Args&&... args) {
 		static_assert(::std::is_same<typename ::std::invoke_result<_Fn, _Args...>::type, void>::value, "return type not supported");
-        auto _Promise = ::std::make_shared<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >();  
+        auto _Promise = ::std::make_shared<::std::promise<void>();  
         _Create_and_push_task(std::forward<_Fn>(fn), std::forward<_Args>(args)..., _Promise);
         return;
     }
 
 	void shutdown() {
-		state_ = _State::TERMINATED;
+		state_ = _State::STOPPING;
+		while (!pqueue_->empty()) {
+			::std::this_thread::sleep_for(::std::chrono::milliseconds(10));
+		}
+		_Close();
 		return;
 	}
 
 	::std::vector<task_type> shutdown_now() {
+		state_ = _State::STOPPING;
+		_Close();
 		::std::vector<task_type> _Remains;
-		state_ = _State::TERMINATED;
+		while (!pqueue_->empty()) {
+			auto _Task = pqueue_->pop();
+			_Remains.emplace_back(::std::move(_Task));
+		}
 		return _Remains;
 	}
 
@@ -148,14 +160,17 @@ private:
 
 	void _Init() {
 		auto _Self = shared_from_this();
+		leader_ = ::std::make_unique<_Leader>(_Self);
 		for (size_type i = 0; i < worker_capacity_; ++i) {
 			pthreads_.emplace_back(::std::make_unique<_Worker>(_Self));
-			pthreads_[i]->run();
+			pthreads_[i]->start();
 		}
 		return;
 	}
 
 	void _Close() {
+		leader_->stop();
+		state_ = _State::TERMINATED;
 		return;
 	}
 
@@ -170,6 +185,7 @@ private:
         try {
 			pqueue_->push(::std::move(_Task));
 			info_.total_submissions_++;
+			cv_.notify_one();
 		} catch (...) {
 			info_.total_rejected_++;
 		}
@@ -183,78 +199,109 @@ private:
 
 	enum class _State : ::std::uint8_t {
 		RUNNING,
-		SHUTDOWN,
-		STOP,
-		TIDYING,
+		STOPPING,
 		TERMINATED
 	} state_;
 
 	size_type worker_capacity_, keepalive_time_;
+	::std::unique_ptr<_Leader> leader_;
 	::std::vector<::std::unique_ptr<_Thread_base> > pthreads_;
 	::std::unique_ptr<_Queue_base> pqueue_;
 	::std::mutex mutex_;
+	::std::conditional_variable cv_;
 };
 
 class _Leader final : 
 	public _Thread_base {
 public:
-	_Leader(::std::shared_ptr<threadpool> ptp) : _Thread_base(), ptp_(ptp) {}
+	_Leader(::std::shared_ptr<threadpool> ptp) : 
+		_Thread_base(), ptp_(ptp) {}
 
 	~_Leader() = default; // nothing
 	
-	void run() override {
+	void start() override {
+		thread_ = ::std::thread(&_Leader::run, this);
+		id_ = ::std::this_thread::get_id();
+		state_ = _State::RUNNING;
+		return;
 	}
 
 	inline void stop() override {
+		state_ = _State::STOPPING;
+		for (auto& worker : ptp_->pthreads_) {
+			worker->stop();
+		}
+        if (thread_.joinable()) {
+            thread_.join();
+        }
+        state_ = _State::STOPPED;
 		return;
 	}
 private:
+	void run() override {
+		auto _Ptp = ptp_.lock();
+		while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
+			auto _Start = ::std::chrono::high_resolution_clock::now();
+			while (::std::chrono::high_resolution_clock::now() - _Start < ::std::chrono::milliseconds(ptp_->keepalive_time_));
+			for (auto &worker : ptp_->pthreads_) {
+				if (worker->state_ == _Worker::_State::SLEEPING) {
+					// dynamic adjust
+				}
+			}
+		}
+	}
+
 	::std::weak_ptr<threadpool> ptp_;
 };
 
 class _Worker final : 
 	public _Thread_base {
 public:
-	_Worker(::std::shared_ptr<threadpool> ptp) : _Thread_base(), ptp_(ptp) {}
+	_Worker(::std::shared_ptr<threadpool> ptp) : 
+		_Thread_base(), ptp_(ptp) {}
 
 	~_Worker() = default; // nothing
 
-	void run() override {
-		auto _Ptp = ptp_.lock();
-		if (!_Ptp) {
-			return;
-		}
-		::std::unique_ptr<_Task_base> _Task;
-		while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
-			state_ = _State::IDLE;
-			auto _Start = ::std::chrono::high_resolution_clock::now(), _End = ::std::chrono::high_resolution_clock::now();
-			while (state_ == _State::IDLE) {
-				auto _Success = _Ptp->pqueue_->try_pop(_Task);
-				if (_Success) {
-					break;	
-				}
-				_End = ::std::chrono::high_resolution_clock::now();
-				if (::std::chrono::duration_cast<::std::chrono::milliseconds>(_End - _Start).count() > _Ptp->keepalive_time_) {
-					state_ = _State::SLEEPING;
-					// waiting for a signal
-				}
-			}
-			if (_Task) {
-				state_ = _State::RUNNING;
-				_Task->execute();
-				_Ptp->info_.total_completions_.fetch_add(1);
-			}
-			_Task.reset();
-		}
-		state_ = _State::STOPPED;
+	void start() override {
+		thread_ = ::std::thread(&_Worker::run, this);
+		id_ = ::std::this_thread::get_id();
+		state_ = _State::IDLE;
 		return;
 	}
 
 	inline void stop() override {
 		state_ = _State::STOPPING;
+		if (thread_.joinable()) {
+            thread_.join();
+        }
+        state_ = _State::STOPPED;
 		return;
 	}
 private:
+	void run() override {
+		auto _Ptp = ptp_.lock();
+		::std::unique_ptr<_Task_base> _Task;
+		while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
+			auto _Start = ::std::chrono::high_resolution_clock::now();
+			std::unique_lock<std::mutex> lock(_Ptp->mtx_);
+			_Ptp->cv_.wait(lock, [this, _Ptp] {
+				return !_Ptp->pqueue_->empty() || 
+				(::std::chrono::high_resolution_clock::now() - _Start > ::std::chrono::milliseconds(_Ptp->keepalive_time_)) ||
+				(state_ == _State::STOPPING || state_ == _State::STOPPED);
+			});
+			if (::std::chrono::high_resolution_clock::now() - _Start > ::std::chrono::milliseconds(_Ptp->keepalive_time_)) {
+				state_ = _State::SLEEPING;
+				while (true); // to do: wait leader to wake
+			} else {
+				state_ = _State::RUNNING;
+				_Task = _Ptp->pqueue_->pop();
+				_Task->execute();
+				_Ptp->info_.total_completions_.fetch_add(1);
+				_Task.reset();
+			}
+		}
+	}
+
 	::std::weak_ptr<threadpool> ptp_;
 };
 
