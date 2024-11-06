@@ -14,7 +14,7 @@
 #include <iostream>
 
 int main() {
-    sw::json j, j1;
+    sw::json j, j1, j3;
     sw::json j2(sw::type::array);
     j["menu1"]["menu2"]["menu3"] = "hello world";
     j["menu2"][0]["123"] = (double)2.0;
@@ -32,6 +32,8 @@ int main() {
     j2[0] = (double)0.44;
     std::cout << j2.serialize() << std::endl;
     j["meaningless"] = j2;
-    std::cout << j.serialize();
+    j3[1]["adsf"][1][32]["asdfds"] = (double)1;
+    std::cout << j.serialize() << std::endl;
+    std::cout << j3.serialize() << std::endl;
     return 0;
 }
