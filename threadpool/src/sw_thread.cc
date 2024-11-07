@@ -36,19 +36,10 @@ void _Leader::start() {
 
 void _Leader::stop() {
     state_ = _State::STOPPING;
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] stopping\n"; 
-#endif // _SW_DEBUG_
     for (int i = 1; i < ptp_->pthreads_.size(); ++i) {
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] send stop signal to thread[" << ptp_->pthreads_[i]->get_thread_id() << "]\n"; 
-#endif // _SW_DEBUG_
         ptp_->pthreads_[i]->stop();
     }
     thread_.join();
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] stopped\n"; 
-#endif // _SW_DEBUG_
     state_ = _State::STOPPED;
     return;
 }
@@ -78,13 +69,7 @@ void _Worker::start() {
 void _Worker::stop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     state_ = _State::STOPPING;
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] stopping with state " << to_state_str(state_) <<"\n"; 
-#endif // _SW_DEBUG_
     thread_.join();
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] stopped\n"; 
-#endif // _SW_DEBUG_
     state_ = _State::STOPPED;
     return;
 }
@@ -96,21 +81,12 @@ void _Worker::run() {
         if (::std::chrono::high_resolution_clock::now() - _Start > ::std::chrono::milliseconds(ptp_->keepalive_time_)) {
             ::std::lock_guard<::std::mutex> _Lock(mutex_);
             state_ = _State::SLEEPING;
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] sleeping\n"; 
-#endif // _SW_DEBUG_
             while (true); // to do: wait leader to wake me up
         } else if (ptp_->pqueue_->try_pop(_Task)) {
             {
                 ::std::lock_guard<::std::mutex> _Lock(mutex_);
                 state_ = _State::RUNNING;
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] running\n"; 
-#endif // _SW_DEBUG_
                 _Task->execute();
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] thread[" << id_ << "] running done\n"; 
-#endif // _SW_DEBUG_
                 state_ = _State::IDLE;  
             }
             _Start = ::std::chrono::high_resolution_clock::now();

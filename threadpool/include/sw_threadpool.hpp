@@ -58,9 +58,6 @@ public:
 	threadpool& operator=(threadpool&&) = delete;
 
 	~threadpool() {
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] threadpool deconstructing\n"; 
-#endif // _SW_DEBUG_
 		if (state_ == _State::RUNNING) {
 			_Close();
 		}
@@ -68,9 +65,6 @@ public:
 			delete pthreads_[i];
 		}
 		delete pqueue_;
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] threadpool deconstructed\n"; 
-#endif // _SW_DEBUG_
 	}
 
 	template <typename _Fn, typename... _Args>  
@@ -90,17 +84,11 @@ public:
     }
 
 	void shutdown() {
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] threadpool stopping\n"; 
-#endif // _SW_DEBUG_
 		state_ = _State::STOPPING;
 		while (!pqueue_->empty()) {
 			::std::this_thread::sleep_for(::std::chrono::milliseconds(10));
 		}
 		_Close();
-#ifdef _SW_DEBUG_
-    std::cout << "[INFO] threadpool stopped\n"; 
-#endif // _SW_DEBUG_
 		return;
 	}
 
