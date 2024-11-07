@@ -16,17 +16,18 @@ void _Reject_handler_delete_oldest::reject(task_type&&) {
     return;
 }
 
-_Queue_base::_Queue_base(size_type capacity = 0) : size_(0), capacity_(capacity) {}
+_Queue_base::_Queue_base(size_type capacity = 0) : 
+    size_(0), capacity_(capacity) {}
 
-inline bool _Queue_base::empty() const {
+bool _Queue_base::empty() const {
     return size_ == 0;
 }
 
-inline _Queue_base::size_type _Queue_base::size() const {
+_Queue_base::size_type _Queue_base::size() const {
     return size_;
 }
 
-inline void _Queue_base::set_handler(::std::unique_ptr<_Reject_handler_base>&& handler) {
+void _Queue_base::set_handler(::std::unique_ptr<_Reject_handler_base>&& handler) {
     phandler_ = ::std::move(handler);
 }
 
@@ -60,12 +61,14 @@ bool _Queue::try_pop(task_type& task) {
     if (queue_.empty()) {  
         return false;  
     }  
+    --size_;
     task = ::std::move(queue_.front());  
     queue_.pop_front();  
     return true; 
 }
 
-_Queue_priority::_Queue_priority(size_type capacity = 0) : _Queue_base(capacity) {}
+_Queue_priority::_Queue_priority(size_type capacity = 0) : 
+    _Queue_base(capacity) {}
 
 void _Queue_priority::push(task_type&& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
@@ -100,6 +103,7 @@ bool _Queue_priority::try_pop(task_type& task) {
     if (queue_.empty()) {  
         return false;  
     }
+    --size_;
     auto& _Top = queue_.top();
     // task.swap(_Top);
     queue_.pop();  

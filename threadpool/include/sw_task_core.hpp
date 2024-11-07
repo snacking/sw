@@ -50,8 +50,8 @@ public:
 
 	task(task&&) = delete;
     
-	task(fn_type&& fn, args_type&& args, ::std::shared_ptr<promise_type> ppromise) : 
-		fn_(std::forward(fn)), args_(args), ppromise_(ppromise) {}
+	task(::std::shared_ptr<promise_type> ppromise, fn_type&& fn, args_type&& args) : 
+		ppromise_(ppromise), fn_(fn), args_(args) {}
 
 	~task() = default; // nothing
 

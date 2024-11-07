@@ -53,11 +53,11 @@ public:
 
 	virtual bool try_pop(task_type&) = 0;
 
-	inline bool empty() const;
+	bool empty() const;
 
-	inline _Queue_base::size_type size() const;
+	_Queue_base::size_type size() const;
 
-	inline void set_handler(::std::unique_ptr<_Reject_handler_base>&&);
+	void set_handler(::std::unique_ptr<_Reject_handler_base>&&);
 protected:
 	size_type size_, capacity_;
 	::std::unique_ptr<_Reject_handler_base> phandler_;

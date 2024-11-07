@@ -5,13 +5,7 @@
 
 _SW_BEGIN
 
-log_level::log_level(log_level::_Level l) : level(l) {}
-
-bool log_level::operator >= (const log_level& l) const {
-    return level >= l.level;
-}
-
-::std::string log_level::to_string() const {
+::std::string log_level::to_string(log_level::level level) {
     return _Level_to_string[static_cast<int>(level)];
 }
 
@@ -96,19 +90,87 @@ void log_formatter::init() {
             }
             break;
         case BRACE_END:
-            items.emplace_back(::std::make_tuple());
+            // items.emplace_back(::std::make_tuple());
             break;
         }
     }
+    static ::std::unordered_map<::std::string, ::std::function<_Formatter_item::ptr(const ::std::string&)> > s_formatter_items = {
+#define XX(str, T) \
+    {#str, [](const ::std::string& fmt) { return _Formatter_item::ptr(new T(fmt)); }}
+        XX(m, _Message_fotmatter_item),
+        XX(p, _Level_fotmatter_item),
+        XX(r, _Elapsed_fotmatter_item),
+        XX(c, _LoggerName_fotmatter_item),
+        XX(t, _ThreadId_fotmatter_item),
+        XX(g, _CoroutineId_fotmatter_item),
+        XX(n, _NewLine_fotmatter_item),
+        XX(d, _DateTime_fotmatter_item),
+        XX(f, _FileName_fotmatter_item),
+        XX(l, _Line_fotmatter_item),
+#undef XX
+    };
 }
 
-::std::string log_formatter::format(log_event::ptr event) {
+::std::string log_formatter::format(logger::ptr logger, log_level::level level, log_event::ptr event) {
     ::std::stringstream ss;
     for (auto &p : items_) {
-        p->format(ss, event);
+        p->format(ss, logger, level, event);
     }
     return ss.str();
 }
+
+log_formatter::_Formatter_item::_Formatter_item(const ::std::string& format) : format_(format) {}
+
+void log_formatter::_Message_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_content();
+}
+
+void log_formatter::_Level_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << log_level::to_string(level);
+}
+
+void log_formatter::_Elapsed_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_elapsed();
+}
+
+void log_formatter::_LoggerName_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << logger->get_name();
+}
+
+void log_formatter::_ThreadId_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_thread_id();
+}
+
+void log_formatter::_CoroutineId_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_coroutine_id();
+}
+
+log_formatter::_DateTime_fotmatter_item::_DateTime_fotmatter_item(const std::string& format = "%Y:%m:%d %H:%M:%S") : _Formatter_item(format) {
+}
+
+void log_formatter::_DateTime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_time();
+}
+
+void log_formatter::_FileName_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_file();
+}
+
+void log_formatter::_Line_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_line();
+}
+
+void log_formatter::_NewLine_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << ::std::endl;
+}
+
+log_formatter::_CStr_fotmatter_item::_CStr_fotmatter_item(const ::std::string& str) : _Formatter_item(str) {
+}
+
+void log_formatter::_CStr_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << format_;
+}
+
 
 log_formatter::ptr log_appender::get_formatter() const {
     return pformatter_;
@@ -118,32 +180,32 @@ void log_appender::set_formatter(log_formatter::ptr formatter) {
     pformatter_ = formatter;
 }
 
-void logger::log(log_level level, log_event::ptr event) {
+void logger::log(log_level::level level, log_event::ptr event) {
     if (level >= level_) {
         for (auto &appender : appenders_) {
-            appender->log(level, event);
+            // appender->log(level, event);
         }
     }
 }
 
 void logger::debug(log_event::ptr event) {
-    log(log_level::_Level::DEBUG, event);
+    log(log_level::level::DEBUG, event);
 }
 
 void logger::info(log_event::ptr event) {
-    log(log_level::_Level::INFO, event);
+    log(log_level::level::INFO, event);
 }
 
 void logger::warn(log_event::ptr event) {
-    log(log_level::_Level::WARN, event);
+    log(log_level::level::WARN, event);
 }
 
 void logger::error(log_event::ptr event) {
-    log(log_level::_Level::ERROR, event);
+    log(log_level::level::ERROR, event);
 }
 
 void logger::fatal(log_event::ptr event) {
-    log(log_level::_Level::FATAL, event);
+    log(log_level::level::FATAL, event);
 }
 
 void logger::add_appender(log_appender::ptr appender) {
@@ -159,12 +221,16 @@ void logger::delete_appender(log_appender::ptr appender) {
     }
 }
 
-void logger::set_level(log_level level) {
+void logger::set_level(log_level::level level) {
     level_ = level;
 }
 
-log_level logger::get_level() const {
+log_level::level logger::get_level() const {
     return level_;
+}
+
+const ::std::string& logger::get_name() const {
+    return name_;
 }
 
 _SW_END

@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/sn4ck/workspace/project/sw/threadpool
+CMAKE_SOURCE_DIR = /home/sn4ck/workspace/Git/sw/threadpool
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/sn4ck/workspace/project/sw/threadpool/build
+CMAKE_BINARY_DIR = /home/sn4ck/workspace/Git/sw/threadpool/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/sn4ck/workspace/project/sw/threadpool/build/CMakeFiles /home/sn4ck/workspace/project/sw/threadpool/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/sn4ck/workspace/Git/sw/threadpool/build/CMakeFiles /home/sn4ck/workspace/Git/sw/threadpool/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/sn4ck/workspace/project/sw/threadpool/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/sn4ck/workspace/Git/sw/threadpool/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named MyExecutable
+# Target rules for targets named test
 
 # Build rule for target.
-MyExecutable: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 MyExecutable
-.PHONY : MyExecutable
+test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test
+.PHONY : test
 
 # fast build rule for target.
-MyExecutable/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/build
-.PHONY : MyExecutable/fast
+test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
+.PHONY : test/fast
 
 src/sw_epoll_core.o: src/sw_epoll_core.cc.o
 .PHONY : src/sw_epoll_core.o
 
 # target to build an object file
 src/sw_epoll_core.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_epoll_core.cc.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_epoll_core.cc.o
 .PHONY : src/sw_epoll_core.cc.o
 
 src/sw_epoll_core.i: src/sw_epoll_core.cc.i
@@ -142,7 +142,7 @@ src/sw_epoll_core.i: src/sw_epoll_core.cc.i
 
 # target to preprocess a source file
 src/sw_epoll_core.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_epoll_core.cc.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_epoll_core.cc.i
 .PHONY : src/sw_epoll_core.cc.i
 
 src/sw_epoll_core.s: src/sw_epoll_core.cc.s
@@ -150,7 +150,7 @@ src/sw_epoll_core.s: src/sw_epoll_core.cc.s
 
 # target to generate assembly for a file
 src/sw_epoll_core.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_epoll_core.cc.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_epoll_core.cc.s
 .PHONY : src/sw_epoll_core.cc.s
 
 src/sw_queue_core.o: src/sw_queue_core.cc.o
@@ -158,7 +158,7 @@ src/sw_queue_core.o: src/sw_queue_core.cc.o
 
 # target to build an object file
 src/sw_queue_core.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_queue_core.cc.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_queue_core.cc.o
 .PHONY : src/sw_queue_core.cc.o
 
 src/sw_queue_core.i: src/sw_queue_core.cc.i
@@ -166,7 +166,7 @@ src/sw_queue_core.i: src/sw_queue_core.cc.i
 
 # target to preprocess a source file
 src/sw_queue_core.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_queue_core.cc.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_queue_core.cc.i
 .PHONY : src/sw_queue_core.cc.i
 
 src/sw_queue_core.s: src/sw_queue_core.cc.s
@@ -174,32 +174,56 @@ src/sw_queue_core.s: src/sw_queue_core.cc.s
 
 # target to generate assembly for a file
 src/sw_queue_core.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/sw_queue_core.cc.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_queue_core.cc.s
 .PHONY : src/sw_queue_core.cc.s
 
-src/test.o: src/test.cpp.o
-.PHONY : src/test.o
+src/sw_thread.o: src/sw_thread.cc.o
+.PHONY : src/sw_thread.o
 
 # target to build an object file
-src/test.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/test.cpp.o
-.PHONY : src/test.cpp.o
+src/sw_thread.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_thread.cc.o
+.PHONY : src/sw_thread.cc.o
 
-src/test.i: src/test.cpp.i
-.PHONY : src/test.i
+src/sw_thread.i: src/sw_thread.cc.i
+.PHONY : src/sw_thread.i
 
 # target to preprocess a source file
-src/test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/test.cpp.i
-.PHONY : src/test.cpp.i
+src/sw_thread.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_thread.cc.i
+.PHONY : src/sw_thread.cc.i
 
-src/test.s: src/test.cpp.s
-.PHONY : src/test.s
+src/sw_thread.s: src/sw_thread.cc.s
+.PHONY : src/sw_thread.s
 
 # target to generate assembly for a file
-src/test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/MyExecutable.dir/build.make CMakeFiles/MyExecutable.dir/src/test.cpp.s
-.PHONY : src/test.cpp.s
+src/sw_thread.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/sw_thread.cc.s
+.PHONY : src/sw_thread.cc.s
+
+tests/test.o: tests/test.cpp.o
+.PHONY : tests/test.o
+
+# target to build an object file
+tests/test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/tests/test.cpp.o
+.PHONY : tests/test.cpp.o
+
+tests/test.i: tests/test.cpp.i
+.PHONY : tests/test.i
+
+# target to preprocess a source file
+tests/test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/tests/test.cpp.i
+.PHONY : tests/test.cpp.i
+
+tests/test.s: tests/test.cpp.s
+.PHONY : tests/test.s
+
+# target to generate assembly for a file
+tests/test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/tests/test.cpp.s
+.PHONY : tests/test.cpp.s
 
 # Help Target
 help:
@@ -209,16 +233,19 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... MyExecutable"
+	@echo "... test"
 	@echo "... src/sw_epoll_core.o"
 	@echo "... src/sw_epoll_core.i"
 	@echo "... src/sw_epoll_core.s"
 	@echo "... src/sw_queue_core.o"
 	@echo "... src/sw_queue_core.i"
 	@echo "... src/sw_queue_core.s"
-	@echo "... src/test.o"
-	@echo "... src/test.i"
-	@echo "... src/test.s"
+	@echo "... src/sw_thread.o"
+	@echo "... src/sw_thread.i"
+	@echo "... src/sw_thread.s"
+	@echo "... tests/test.o"
+	@echo "... tests/test.i"
+	@echo "... tests/test.s"
 .PHONY : help
 
 

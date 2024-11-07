@@ -39,12 +39,12 @@ public:
         if (paused_) {
             return accumulated_duration_;
         }
-        return accumulated_duration_ + ::chrono::duration_cast<::std::chrono::microseconds>(
+        return accumulated_duration_ + ::std::chrono::duration_cast<::std::chrono::microseconds>(
             _Ct::now() - start_).count();
     }
 private:
     ::std::uint64_t accumulated_duration_;
-    _Ct::time_point start_;
+    typename _Ct::time_point start_;
     bool paused_;
 };
 

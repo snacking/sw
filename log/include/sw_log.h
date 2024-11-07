@@ -4,7 +4,7 @@
 #define _SW_LOG_H_
 
 #include "../../include/sw_vals.h"
-#include "../time/include/sw_clock.hpp"
+#include "../../time/include/sw_clock.hpp"
 
 #include <cstdint>
 #include <string>
@@ -18,11 +18,15 @@
 #include <stdexcept>
 #include <cctype>
 #include <array>
+#include <unordered_map>
+#include <functional>
 
 _SW_BEGIN
 
+class logger;
+
 struct log_level {
-    enum class _Level {
+    enum class level {
         DEBUG,
         INFO,
         WARN,
@@ -38,13 +42,7 @@ struct log_level {
         "FATAL"
     };
 
-    log_level(_Level);
-
-    bool operator >= (const log_level&) const;
-
-    ::std::string to_string() const;
-
-    _Level level;
+    static ::std::string to_string(log_level::level);
 };
 
 class log_event {
@@ -75,29 +73,85 @@ public:
     log_formatter(const ::std::string&);
 
     void init();
-    ::std::string format(log_event::ptr);
+    ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr);
 private:
     class _Formatter_item {
     public:
         using ptr = ::std::shared_ptr<_Formatter_item>;
         
+        _Formatter_item(const ::std::string&);
         virtual ~_Formatter_item() = default;
-        virtual void format(::std::ostream&, log_event::ptr) = 0;
+        virtual void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
+    protected:
+        const ::std::string format_;
     };
 
     class _Message_fotmatter_item : public _Formatter_item {
     public:
-        void format(::std::ostream&, log_event::ptr);
+        _Message_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
     
     class _Level_fotmatter_item : public _Formatter_item {
     public:
-        void format(::std::ostream&, log_event::ptr);
+        _Level_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
     
-    class _fotmatter_item : public _Formatter_item {
+    class _Elapsed_fotmatter_item : public _Formatter_item {
     public:
-        void format(::std::ostream&, log_event::ptr);
+        _Elapsed_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _LoggerName_fotmatter_item : public _Formatter_item {
+    public:
+        _LoggerName_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _ThreadId_fotmatter_item : public _Formatter_item {
+    public:
+        _ThreadId_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _CoroutineId_fotmatter_item : public _Formatter_item {
+    public:
+        _CoroutineId_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _DateTime_fotmatter_item : public _Formatter_item {
+    public:
+        _DateTime_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    private:
+    };
+
+    class _FileName_fotmatter_item : public _Formatter_item {
+    public:
+        _FileName_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _Line_fotmatter_item : public _Formatter_item {
+    public:
+        _Line_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _NewLine_fotmatter_item : public _Formatter_item {
+    public:
+        _NewLine_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    };
+
+    class _CStr_fotmatter_item : public _Formatter_item {
+    public:
+        _CStr_fotmatter_item(const ::std::string&);
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    private:
     };
 
     const ::std::string pattern_;
@@ -110,11 +164,11 @@ public:
 
     virtual ~log_appender() = default;
 
-    virtual void log(log_level, log_event::ptr) = 0;
+    virtual void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
     log_formatter::ptr get_formatter() const;
     void set_formatter(log_formatter::ptr);
 protected:
-    log_level level_;
+    log_level::level level_;
     log_formatter::ptr pformatter_;
 };
 
@@ -126,9 +180,9 @@ public:
     explicit stream_log_appender(_St &out) noexcept : out_(out) {}
     ~stream_log_appender() = default;
 
-    void log(log_level level, log_event::ptr event) override {
+    void log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) override {
         if (level >= level_) {
-            out_ << pformatter_->format(event);
+            out_ << pformatter_->format(logger, level, event);
         }
     }
 private:
@@ -150,9 +204,9 @@ public:
         file_.close();
     }
     
-    void log(log_level level, log_event::ptr event) override {
+    void log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) override {
         if (level >= level_) {
-            file_ << pformatter_->format(event);
+            file_ << pformatter_->format(logger, level, event);
         }
     }
 private:
@@ -166,7 +220,7 @@ class logger {
 public:
     using ptr = ::std::shared_ptr<logger>;
 
-    void log(log_level, log_event::ptr);
+    void log(log_level::level, log_event::ptr);
     void debug(log_event::ptr);
     void info(log_event::ptr);
     void warn(log_event::ptr);
@@ -174,11 +228,12 @@ public:
     void fatal(log_event::ptr);
     void add_appender(log_appender::ptr);
     void delete_appender(log_appender::ptr);
-    void set_level(log_level);
-    log_level get_level() const;
+    void set_level(log_level::level);
+    log_level::level get_level() const;
+    const ::std::string& get_name() const;
 private:
     ::std::string name_;
-    log_level level_;
+    log_level::level level_;
     ::std::list<log_appender::ptr> appenders_;
 };
 

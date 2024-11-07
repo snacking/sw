@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/MyExecutable.dir/src/sw_epoll_core.cc.o CMakeFiles/MyExecutable.dir/src/sw_queue_core.cc.o CMakeFiles/MyExecutable.dir/src/test.cpp.o -o MyExecutable 
