@@ -9,10 +9,17 @@ void _Reject_handler_ignore::reject(task_type&&) {
 }
 
 void _Reject_handler_ignore_throw::reject(task_type&&) {
+    throw ::std::runtime_error("queue is full");
     return;
 }
 
+_Reject_handler_delete_oldest::_Reject_handler_delete_oldest(queue_type *pqueue) :
+    pqueue_(pqueue) {}
+
 void _Reject_handler_delete_oldest::reject(task_type&&) {
+    ::std::lock_guard<::std::mutex> _Lock(pqueue_->mutex_);
+    while (pqueue_->size() >= pqueue_->capacity_ - 1) pqueue_->pop();
+    throw ::std::runtime_error("queue is full");
     return;
 }
 
@@ -39,6 +46,7 @@ void _Queue::push(task_type&& task) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
         }
+        return;
     }
     ++size_;
     queue_.emplace_back(::std::move(task));
@@ -76,9 +84,8 @@ void _Queue_priority::push(task_type&& task) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
             throw ::std::runtime_error("queue is full");
-        } else {
-            return;
         }
+        return;
     }
     ++size_;
     queue_.emplace(::std::move(task));

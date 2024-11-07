@@ -106,6 +106,10 @@ public:
 	inline size_type size() const {
 		return pqueue_->size();
 	}
+
+	inline ::std::tuple<size_type, size_type, size_type> statistics() const {
+		return ::std::make_tuple(info_.total_submissions_, info_.total_rejected_, info_.total_completions_.load());
+	}
 private:
 	_Queue_base *_Queue_create_helper(queue_type type, size_type capacity) {
 		switch (type) {
@@ -124,7 +128,7 @@ private:
 		case HANDLER_TYPE_IGNORE_THROW:
 			return ::std::make_unique<_Reject_handler_ignore_throw>();
 		case HANDLER_TYPE_DELETE_OLDEST:
-			return ::std::make_unique<_Reject_handler_delete_oldest>();
+			return ::std::make_unique<_Reject_handler_delete_oldest>(pqueue_);
 		}
 		return ::std::make_unique<_Reject_handler_ignore>();
 	}
@@ -164,8 +168,8 @@ private:
 	}
 
 	struct _Statistics {
-		size_type total_submissions_, total_rejected_;
-		atomic_type total_completions_;
+		size_type total_submissions_ = 0, total_rejected_ = 0;
+		atomic_type total_completions_ = 0;
 	} info_;
 
 	enum class _State : ::std::uint8_t {

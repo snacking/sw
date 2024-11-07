@@ -26,11 +26,9 @@ enum handler_type {
 class _Reject_handler_base {
 public:
 	using task_type = ::std::unique_ptr<_Task_base>;
-	using queue_type = ::std::weak_ptr<_Queue_base>;
+	using queue_type = _Queue_base;
 
 	virtual void reject(task_type&&) = 0;
-protected:
-	queue_type pqueue_;
 };
 
 enum queue_type {
@@ -40,6 +38,8 @@ enum queue_type {
 
 class _Queue_base {
 public:
+	friend class _Reject_handler_delete_oldest;
+
 	using size_type = ::std::size_t;
 	using task_type = ::std::unique_ptr<_Task_base>;
 
@@ -59,6 +59,7 @@ public:
 
 	void set_handler(::std::unique_ptr<_Reject_handler_base>&&);
 protected:
+	::std::mutex mutex_;
 	size_type size_, capacity_;
 	::std::unique_ptr<_Reject_handler_base> phandler_;
 };
@@ -78,7 +79,10 @@ public:
 class _Reject_handler_delete_oldest : 
 	public _Reject_handler_base {
 public:
+	_Reject_handler_delete_oldest(queue_type*);
 	void reject(task_type&&) override;
+private:
+	queue_type *pqueue_;
 };
 
 class _Queue :
@@ -93,7 +97,6 @@ public:
 	bool try_pop(task_type&) override;
 private:
 	::std::deque<task_type> queue_;
-	::std::mutex mutex_;
 };
 
 class _Queue_priority :
@@ -114,7 +117,6 @@ private:
 	};
 
 	::std::priority_queue<task_type, ::std::vector<task_type>, _Comparator> queue_;
-	::std::mutex mutex_;
 };
 
 _SW_END // _SW_BEGIN
