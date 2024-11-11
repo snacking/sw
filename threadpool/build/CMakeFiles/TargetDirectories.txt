@@ -1,3 +1,0 @@
-/home/sn4ck/workspace/Git/sw/threadpool/build/CMakeFiles/test.dir
-/home/sn4ck/workspace/Git/sw/threadpool/build/CMakeFiles/edit_cache.dir
-/home/sn4ck/workspace/Git/sw/threadpool/build/CMakeFiles/rebuild_cache.dir
