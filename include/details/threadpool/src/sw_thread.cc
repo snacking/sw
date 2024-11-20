@@ -59,8 +59,8 @@ void _Leader::run() {
     return;
 }
 
-_Worker::_Worker(threadpool *ptp) : 
-	_Thread_base(ptp) {}
+_Worker::_Worker(threadpool *ptp, bool is_core) : 
+	_Thread_base(ptp), is_core_(is_core) {}
 
 void _Worker::start() {
     thread_ = ::std::thread(&_Worker::run, this);
@@ -86,7 +86,7 @@ void _Worker::run() {
     ::std::unique_ptr<_Task_base> _Task;
     auto sw = sw::stopwatch<::std::chrono::steady_clock>();
     while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
-        if (ptp_->keepalive_time_ >= 0 && sw.elapsed() > ptp_->keepalive_time_) {
+        if (ptp_->keepalive_time_ >= 0 && !is_core_ && sw.elapsed() > ptp_->keepalive_time_ * 1000) {
             {
                 ::std::lock_guard<::std::mutex> _Lock(mutex_);
                 state_ = _State::SLEEPING;

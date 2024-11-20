@@ -12,11 +12,15 @@
 
 _SW_BEGIN
 
-template <typename _Ct>
+template <typename _Ct,
+    typename _Dr = ::std::chrono::milliseconds>
 class stopwatch {
 public:
-    stopwatch() noexcept : 
-        accumulated_duration_(0), start_(), paused_(false) {}
+    stopwatch(bool auto_start = true) noexcept : 
+        accumulated_duration_(0), start_(), paused_(false) {
+        if (auto_start) 
+            start();
+    }
 
     ~stopwatch() = default;
 
@@ -40,7 +44,7 @@ public:
         if (paused_) {
             return accumulated_duration_;
         }
-        return accumulated_duration_ + ::std::chrono::duration_cast<::std::chrono::microseconds>
+        return accumulated_duration_ + ::std::chrono::duration_cast<_Dr>
             (_Ct::now() - start_).count();
     }
 private:
@@ -50,15 +54,15 @@ private:
 };
 
 template <typename _Ct, 
-    typename _Cb = ::std::function<void(const ::std::string&, ::std::uint64_t)> >
+    typename _Dr = ::std::chrono::milliseconds,
+        typename _Cb = ::std::function<void(const ::std::string&, ::std::uint64_t)> >
 class counter {
 public:
-    using stopwatch_type = stopwatch<_Ct>;
+    using stopwatch_type = stopwatch<_Ct, _Dr>;
     using callback_type = _Cb;
 
     explicit counter(const std::string &key, callback_type &&callback) :
         key_(key), callback_(callback) {
-        stopwatch_.start();
     }
 
     ~counter() {

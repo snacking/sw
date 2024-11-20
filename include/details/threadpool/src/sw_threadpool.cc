@@ -4,20 +4,16 @@
 
 _SW_BEGIN
 
-threadpool::threadpool() : 
-        worker_capacity_(::std::thread::hardware_concurrency()), pthreads_(::std::thread::hardware_concurrency()), 
-            pqueue_(_Queue_create_helper(QUEUE_TYPE_FIFO, 1024)), keepalive_time_(1000) {
-                assert(worker_capacity_ >= 2);
-                pqueue_->set_handler(_Reject_handler_create_helper(HANDLER_TYPE_IGNORE));
-                pthreads_.resize(worker_capacity_);
-                _Init();
-            }
+threadpool_settings::threadpool_settings() : 
+    worker_capacity(::std::thread::hardware_concurrency()), core_capacity(0), queue_capacity(100), keepalive_time(10000), queue(QUEUE_TYPE_FIFO), handler(HANDLER_TYPE_IGNORE) { 
+}
 
-threadpool::threadpool(::std::size_t worker_capacity, queue_type queue, ::std::size_t queue_capacity, size_t keepalive_time, handler_type handler) : 
-        worker_capacity_(worker_capacity), pthreads_(worker_capacity), pqueue_(_Queue_create_helper(queue, queue_capacity)),
-            keepalive_time_(keepalive_time) {
-                assert(worker_capacity_ >= 2);
-                pqueue_->set_handler(_Reject_handler_create_helper(handler));
+threadpool::threadpool(threadpool_settings ts) : 
+        worker_capacity_(ts.worker_capacity), core_capacity_(ts.core_capacity), pthreads_(ts.worker_capacity), pqueue_(_Queue_create_helper(ts.queue, ts.queue_capacity)),
+            keepalive_time_(ts.keepalive_time) {
+                assert(worker_capacity_ >= 2); // worker's number must be larger than one, since the first element of pthread is leader
+                assert(worker_capacity_ >= core_capacity_ + 1);
+                pqueue_->set_handler(_Reject_handler_create_helper(ts.handler));
                 pthreads_.resize(worker_capacity_);
                 _Init();
             }
@@ -34,9 +30,7 @@ threadpool::~threadpool() {
 
 void threadpool::shutdown() {
     state_ = _State::STOPPING;
-    while (!pqueue_->empty()) {
-        ::std::this_thread::sleep_for(::std::chrono::milliseconds(10));
-    }
+    join();
     _Close();
     return;
 }
@@ -52,7 +46,8 @@ void threadpool::shutdown() {
     return _Remains;
 }
 
-void threadpool::join() {	
+void threadpool::join() {
+    while (!pqueue_->empty());
     return;
 }
 

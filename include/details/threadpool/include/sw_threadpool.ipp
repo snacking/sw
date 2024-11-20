@@ -31,8 +31,10 @@ inline void threadpool::_Init() {
     for (::std::size_t i = 0; i < worker_capacity_; ++i) {
         if (i == 0) 
             pthreads_[i] = new _Leader(this);
-        else 
-            pthreads_[i] = new _Worker(this);
+        else if(i <= core_capacity_)
+            pthreads_[i] = new _Worker(this, true);
+        else
+            pthreads_[i] = new _Worker(this, false);
         pthreads_[i]->start();
     }
     return;

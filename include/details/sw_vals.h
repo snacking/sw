@@ -17,7 +17,18 @@
 
 #define _SW_VER 1
 
+#if defined(_MSC_VER)
+	#undef max
+	#undef min
+#endif // #if defined(_MSC_VER)
 
+#if defined(__GNUC__) || defined(__clang__)
+	#define __FUNC_NAME__ __PRETTY_FUNCTION__ 
+#elif defined(_MSC_VER)
+	#define __FUNC_NAME__ __func__
+#else
+	#define __FUNC_NAME__ __FUNCTION__
+#endif // #if defined(__GNUC__) || defined(__clang__)
 
 #ifdef _SW_DEBUG_
     #include <cassert>
@@ -29,14 +40,6 @@
 		int code;
 		char msg[ERROR_MSG_SIZE];
 	} sw_error;
-
-	#if defined(__GNUC__) || defined(__clang__)
-		#define __FUNC_NAME__ __PRETTY_FUNCTION__ 
-	#elif defined(_MSC_VER)
-		#define __FUNC_NAME__ __func__
-	#else
-		#define __FUNC_NAME__ __FUNCTION__
-	#endif // #if defined(__GNUC__) || defined(__clang__)
 
 	#define REGISTER_SW_ERROR(code, msg) \
 		do { \
@@ -51,7 +54,11 @@
 
 	#define SW_ERROR_CODE sw_error.code
 	
-	#define SW_ERROR_MSG return sw_error.msg;
+	#define SW_ERROR_MSG sw_error.msg;
+#else
+	#define REGISTER_SW_ERROR(code, msg)
+	#define SW_ERROR_CODE -1
+	#define SW_ERROR_MSG "DEBUG MODE IS NOT ENABLED"
 #endif // _SW_DEBUG_
 
 #endif // _SW_VALS_H_

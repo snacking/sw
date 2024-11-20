@@ -3,8 +3,9 @@
 #ifndef _SW_LOG_H_
 #define _SW_LOG_H_
 
-#include "../../include/sw_vals.h"
-#include "../../time/include/sw_clock.hpp"
+#include "../../sw_vals.h"
+
+#include "../../time/include/sw_time.hpp"
 
 #include <cstdint>
 #include <string>
@@ -20,6 +21,8 @@
 #include <array>
 #include <unordered_map>
 #include <functional>
+#include <thread>
+#include <ctime>
 
 _SW_BEGIN
 
@@ -49,20 +52,23 @@ class log_event {
 public:
     using ptr = ::std::shared_ptr<log_event>;
 
+    log_event(const std::string &);
+
     const char *get_file() const;
+    const char *get_func() const;
     ::std::uint64_t get_elapsed() const;
     ::std::uint32_t get_line() const;
-    ::std::uint32_t get_thread_id() const;
-    ::std::uint32_t get_coroutine_id() const;
-    ::std::uint64_t get_time() const;
+    ::std::thread::id get_thread_id() const;
+    ::std::string get_coroutine_id() const;
+    ::std::tm *get_time() const;
     ::std::string get_content() const;
 private:
-    const char *file_;
-    clock<::std::chrono::steady_clock>::ptr pclock_;
+    const char *file_, *func_;
+    stopwatch<::std::chrono::steady_clock> sw_;
     ::std::uint32_t line_;
-    ::std::uint32_t thread_id_;
-    ::std::uint32_t coroutine_id_;
-    ::std::uint64_t time_;
+    ::std::thread::id thread_id_;
+    ::std::string coroutine_id_;
+    ::std::tm *time_;
     ::std::string content_;
 };
 
@@ -216,9 +222,11 @@ private:
 using ostream_appender = stream_log_appender<::std::ostream>;
 using ofstream_appender = stream_log_appender<::std::ofstream>;
 
-class logger {
+class logger : public ::std::enable_shared_from_this<logger> {
 public:
     using ptr = ::std::shared_ptr<logger>;
+
+    explicit logger(const std::string &, log_level::level);
 
     void log(log_level::level, log_event::ptr);
     void debug(log_event::ptr);
@@ -238,5 +246,9 @@ private:
 };
 
 _SW_END
+
+#ifdef _SW_HEADER_ONLY_
+    #include "../src/log.cc"
+#endif // _SW_HEADER_ONLY_
 
 #endif // _SW_LOG_H_

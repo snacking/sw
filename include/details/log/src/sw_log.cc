@@ -1,35 +1,40 @@
 // implementation file for sw_log.h
 
-#include "../../include/sw_vals.h"
 #include "../include/sw_log.h"
 
 _SW_BEGIN
+
+log_event::log_event(const std::string &content) :
+    file_(__FILE__), func_(__FUNC_NAME__), line_(__LINE__), thread_id_(::std::this_thread::get_id()), content_(content) {
+    auto now_time = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
+    time_ = ::std::localtime(&now_time);
+}
 
 ::std::string log_level::to_string(log_level::level level) {
     return _Level_to_string[static_cast<int>(level)];
 }
 
-const char* log_event::get_file() const {
+const char *log_event::get_file() const {
     return file_;
 }
 
 ::std::uint64_t log_event::get_elapsed() const {
-    return pclock_->elapsed();
+    return sw_.elapsed();
 }
 
 ::std::uint32_t log_event::get_line() const {
     return line_;
 }
 
-::std::uint32_t log_event::get_thread_id() const {
+::std::thread::id log_event::get_thread_id() const {
     return thread_id_;
 }
 
-::std::uint32_t log_event::get_coroutine_id() const {
+::std::string log_event::get_coroutine_id() const {
     return coroutine_id_;
 }
 
-::std::uint64_t log_event::get_time() const {
+::std::tm *log_event::get_time() const {
     return time_;
 }
 
@@ -145,11 +150,11 @@ void log_formatter::_CoroutineId_fotmatter_item::format(::std::ostream& os, logg
     os << event->get_coroutine_id();
 }
 
-log_formatter::_DateTime_fotmatter_item::_DateTime_fotmatter_item(const std::string& format = "%Y:%m:%d %H:%M:%S") : _Formatter_item(format) {
+log_formatter::_DateTime_fotmatter_item::_DateTime_fotmatter_item(const std::string &format = "%Y:%m:%d %H:%M:%S") : _Formatter_item(format) {
 }
 
 void log_formatter::_DateTime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_time();
+    os << std::put_time(event->get_time(), "%Y-%m-%d %H:%M:%S");
 }
 
 void log_formatter::_FileName_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
@@ -180,10 +185,13 @@ void log_appender::set_formatter(log_formatter::ptr formatter) {
     pformatter_ = formatter;
 }
 
+logger::logger(const std::string &name, log_level::level level) :
+    name_(name), level_(level) {}
+
 void logger::log(log_level::level level, log_event::ptr event) {
     if (level >= level_) {
         for (auto &appender : appenders_) {
-            // appender->log(level, event);
+            appender->log(shared_from_this(), level, event);
         }
     }
 }

@@ -4,9 +4,11 @@
 #define _SW_THREADPOOL_H_
 
 #include "../../sw_vals.h"
+
 #include "./sw_thread.h"
 #include "./sw_queue_core.h"
 #include "./sw_task_core.hpp"
+
 #include <future>
 #include <utility>
 #include <thread>
@@ -21,12 +23,23 @@
 
 _SW_BEGIN
 
+struct threadpool_settings {
+	using size_type = ::std::size_t;
+
+	threadpool_settings();
+	size_type worker_capacity, core_capacity, queue_capacity;
+	int keepalive_time;
+	queue_type queue;
+	handler_type handler;
+};
+
 /*
 	threadpool(
 		worker capacity(worker thread's maximum size),
+		core_capacity(core thread(never expire)'s maximum size),
 		queue(queue to store tasks),
 		queue capacity(queue's maximum size),
-		keepalive time(spare thread's maximum keepalive time),
+		keepalive time(spare thread's maximum keepalive time(ms), negative value means never expire),
 		handler(reject handler)
 	)
 */
@@ -39,9 +52,9 @@ public:
 	using task_type = ::std::unique_ptr<_Task_base>;
 	using atomic_type = ::std::atomic<size_type>;
 
-	threadpool();
+	threadpool() = delete;
 
-	explicit threadpool(size_type, queue_type, size_type, size_t, handler_type);
+	explicit threadpool(threadpool_settings);
 
 	threadpool(const threadpool&) = delete;
 
@@ -91,7 +104,8 @@ private:
 		TERMINATED
 	} state_;
 
-	size_type worker_capacity_, keepalive_time_;
+	size_type worker_capacity_, core_capacity_;
+	int keepalive_time_;
 	::std::vector<_Thread_base*> pthreads_;
 	::std::mutex mutex_;
 	::std::condition_variable cv_;

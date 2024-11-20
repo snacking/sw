@@ -60,7 +60,7 @@ public:
 	void set_handler(::std::unique_ptr<_Reject_handler_base>&&);
 protected:
 	::std::mutex mutex_;
-	size_type size_, capacity_;
+	volatile size_type size_, capacity_;
 	::std::unique_ptr<_Reject_handler_base> phandler_;
 };
 

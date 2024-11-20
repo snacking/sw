@@ -84,7 +84,7 @@ private:
 class _Worker final : 
 	public _Thread_base {
 public:
-	_Worker(threadpool *);
+	_Worker(threadpool *, bool);
 
 	~_Worker() = default; // nothing
 
@@ -95,6 +95,8 @@ public:
 	void sleep();
 private:
 	void run() override;
+
+	bool is_core_;
 };
 
 _SW_END // _SW_BEGIN
