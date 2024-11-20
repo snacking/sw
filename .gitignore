@@ -2,6 +2,7 @@
 *.obj
 *.exe
 **/tests/**
+**/lib/**
 **/build/**
 **/bin/**
 **/tmp/**
