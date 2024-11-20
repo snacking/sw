@@ -3,7 +3,7 @@
 #ifndef _SW_THREAD_H_
 #define _SW_THREAD_H_
 
-#include "../../include/sw_vals.h"
+#include "../../sw_vals.h"
 #include "./sw_task_core.hpp"
 #include <thread>
 #include <cstddef>

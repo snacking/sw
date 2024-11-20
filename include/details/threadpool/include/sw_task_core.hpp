@@ -3,7 +3,7 @@
 #ifndef _SW_TASK_CORE_H_
 #define _SW_TASK_CORE_H_
 
-#include "../../include/sw_vals.h"
+#include "../../sw_vals.h"
 
 #include <cstdint>
 #include <memory>

@@ -3,9 +3,8 @@
 #ifndef _SW_THREADPOOL_H_
 #define _SW_THREADPOOL_H_
 
-#include "../../include/sw_vals.h"
+#include "../../sw_vals.h"
 #include "./sw_thread.h"
-#include "./sw_epoll_core.h"
 #include "./sw_queue_core.h"
 #include "./sw_task_core.hpp"
 #include <future>

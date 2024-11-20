@@ -1,16 +1,30 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(threadpool)
+project(threadPool)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+set(THREADPOOL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(THREADPOOL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
-include_directories(${PROJECT_SOURCE_DIR}/include)  
-  
-set(SRC_FILES  
-    ${PROJECT_SOURCE_DIR}/src/sw_epoll_core.cc  
-    ${PROJECT_SOURCE_DIR}/src/sw_queue_core.cc
-    ${PROJECT_SOURCE_DIR}/src/sw_thread.cc
-    ${PROJECT_SOURCE_DIR}/tests/test.cpp  
-)  
-  
-add_executable(benchmark ${SRC_FILES}) 
+file(GLOB THREADPOOL_SRCS "${THREADPOOL_SOURCE_DIR}/*.cc")
+
+set(LIBRARY_NAME "threadpool")
+
+add_library(${LIBRARY_NAME}_static STATIC ${THREADPOOL_SRCS})
+add_library(${LIBRARY_NAME}_shared SHARED ${THREADPOOL_SRCS})
+
+set_target_properties(${LIBRARY_NAME}_static PROPERTIES 
+    ARCHIVE_OUTPUT_DIRECTORY ${ARCHIVE_OUTPUT_DIRECTORY}
+)
+
+set_target_properties(${LIBRARY_NAME}_shared PROPERTIES
+    VERSION 1.0
+    SOVERSION 1
+    LIBRARY_OUTPUT_DIRECTORY ${LIBRARY_OUTPUT_DIRECTORY}
+)
+
+target_include_directories(${LIBRARY_NAME}_static PUBLIC ${THREADPOOL_INCLUDE_DIR})
+target_include_directories(${LIBRARY_NAME}_shared PUBLIC ${THREADPOOL_INCLUDE_DIR})
+
+# install(TARGETS ${LIBRARY_NAME}_static ${LIBRARY_NAME}_shared DESTINATION lib)
