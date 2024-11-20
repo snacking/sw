@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(threadPool)
+project(threadpool)
 
 set(THREADPOOL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(THREADPOOL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
