@@ -3,11 +3,14 @@
 #ifndef _SW_THREAD_H_
 #define _SW_THREAD_H_
 
+#include "../../time/include/sw_time.hpp"
+
 #include "../../sw_vals.h"
 #include "./sw_task_core.hpp"
 #include <thread>
 #include <cstddef>
 #include <mutex>
+#include <condition_variable>
 
 _SW_BEGIN
 
@@ -27,9 +30,9 @@ public:
 
 	enum class _State : ::std::uint8_t;
 
-	_State state() const;
+	_State state() ;
 
-	thread_id get_thread_id() const;
+	inline thread_id get_thread_id() const;
 protected:
 	virtual void run() = 0;
 
@@ -58,6 +61,7 @@ protected:
 	::std::thread thread_;
 	thread_id id_;
 	threadpool *ptp_;
+	::std::mutex mutex_; // state mutex
 };
 
 class _Leader final : 
@@ -72,6 +76,9 @@ public:
 	void stop() override;
 private:
 	void run() override;
+
+	::std::mutex ct_mutex_; // time counter helper mutex
+	::std::condition_variable ct_cv_; // time counter helper cv
 };
 
 class _Worker final : 
@@ -84,16 +91,18 @@ public:
 	void start() override;
 
 	void stop() override;
+
+	void sleep();
 private:
 	void run() override;
-
-	::std::mutex mutex_;
 };
 
 _SW_END // _SW_BEGIN
 
+#include "sw_thread.ipp"
+
 #ifdef _SW_HEADER_ONLY_
-#include "../src/sw_thread.cc"
+	#include "../src/sw_thread.cc"
 #endif // _SW_HEADER_ONLY_
 
 #endif // _SW_THREAD_H_

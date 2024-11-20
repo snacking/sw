@@ -23,14 +23,9 @@ public:
 
 	virtual void execute() = 0;
 
-	inline void set_priority(priority_t priority) noexcept {
-		priority_ = priority;
-		return;
-	}
+	inline void set_priority(priority_t) noexcept;
 
-	inline priority_t get_priority() const noexcept {  
-        return priority_;  
-    }
+	inline priority_t get_priority() const noexcept;
 private:
 	priority_t priority_;
 };
@@ -81,5 +76,7 @@ private:
 };
 
 _SW_END // _SW_BEGIN
+
+#include "./sw_task_core.ipp"
 
 #endif // _SW_TASK_CORE_H_

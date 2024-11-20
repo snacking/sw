@@ -27,4 +27,11 @@ set_target_properties(${LIBRARY_NAME}_shared PROPERTIES
 target_include_directories(${LIBRARY_NAME}_static PUBLIC ${THREADPOOL_INCLUDE_DIR})
 target_include_directories(${LIBRARY_NAME}_shared PUBLIC ${THREADPOOL_INCLUDE_DIR})
 
+# Add debug flags if the build type is Debug
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Debug build")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address")
+    add_definitions(-DDEBUG)
+endif()
+
 # install(TARGETS ${LIBRARY_NAME}_static ${LIBRARY_NAME}_shared DESTINATION lib)

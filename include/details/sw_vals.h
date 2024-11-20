@@ -30,13 +30,13 @@
 		char msg[ERROR_MSG_SIZE];
 	} sw_error;
 
-	#if defined(__GNUC__ || __clang__)
+	#if defined(__GNUC__) || defined(__clang__)
 		#define __FUNC_NAME__ __PRETTY_FUNCTION__ 
 	#elif defined(_MSC_VER)
 		#define __FUNC_NAME__ __func__
 	#else
 		#define __FUNC_NAME__ __FUNCTION__
-	#endif // defined(_GNUC__)
+	#endif // #if defined(__GNUC__) || defined(__clang__)
 
 	#define REGISTER_SW_ERROR(code, msg) \
 		do { \
@@ -49,13 +49,9 @@
 				REGISTER_SW_ERROR(1002, error_msg_1002); \
 		} while(0)
 
-	int get_sw_error_code() {
-		return sw_error.code;
-	}
-
-	char *get_sw_error_msg() {
-		return sw_error.msg;
-	}	
+	#define SW_ERROR_CODE sw_error.code
+	
+	#define SW_ERROR_MSG return sw_error.msg;
 #endif // _SW_DEBUG_
 
 #endif // _SW_VALS_H_

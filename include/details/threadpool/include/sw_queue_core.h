@@ -47,15 +47,15 @@ public:
 
 	virtual ~_Queue_base() = default;
 
-	virtual void push(task_type&&) = 0;
+	virtual bool push(task_type&&) = 0;
 
 	virtual task_type pop() = 0;
 
 	virtual bool try_pop(task_type&) = 0;
 
-	bool empty() const;
+	inline bool empty() const;
 
-	_Queue_base::size_type size() const;
+	inline size_type size() const;
 
 	void set_handler(::std::unique_ptr<_Reject_handler_base>&&);
 protected:
@@ -90,7 +90,7 @@ class _Queue :
 public:
 	_Queue(size_type);
 
-	void push(task_type&&) override;
+	bool push(task_type&&) override;
 
 	task_type pop() override;
 
@@ -104,7 +104,7 @@ class _Queue_priority :
 public:
 	_Queue_priority(size_type);
 
-	void push(task_type&& task) override;
+	bool push(task_type&& task) override;
 
 	task_type pop() override;
 
@@ -121,8 +121,10 @@ private:
 
 _SW_END // _SW_BEGIN
 
+#include "./sw_queue_core.ipp"
+
 #ifdef _SW_HEADER_ONLY_
-#include "../src/sw_queue_core.cc"
+	#include "../src/sw_queue_core.cc"
 #endif // _SW_HEADER_ONLY_
 
 #endif // _SW_QUEUE_CORE_H_

@@ -26,31 +26,23 @@ void _Reject_handler_delete_oldest::reject(task_type&&) {
 _Queue_base::_Queue_base(size_type capacity = 0) : 
     size_(0), capacity_(capacity) {}
 
-bool _Queue_base::empty() const {
-    return size_ == 0;
-}
-
-_Queue_base::size_type _Queue_base::size() const {
-    return size_;
-}
-
 void _Queue_base::set_handler(::std::unique_ptr<_Reject_handler_base>&& handler) {
     phandler_ = ::std::move(handler);
 }
 
 _Queue::_Queue(size_type capacity = 0) : _Queue_base(capacity) {}
 
-void _Queue::push(task_type&& task) {
+bool _Queue::push(task_type&& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (size() >= capacity_) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
         }
-        return;
+        return false;
     }
     ++size_;
     queue_.emplace_back(::std::move(task));
-    return;
+    return true;
 }
 
 _Queue_base::task_type _Queue::pop() {
@@ -78,18 +70,18 @@ bool _Queue::try_pop(task_type& task) {
 _Queue_priority::_Queue_priority(size_type capacity = 0) : 
     _Queue_base(capacity) {}
 
-void _Queue_priority::push(task_type&& task) {
+bool _Queue_priority::push(task_type&& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (size() >= capacity_) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
             throw ::std::runtime_error("queue is full");
         }
-        return;
+        return false;
     }
     ++size_;
     queue_.emplace(::std::move(task));
-    return;
+    return true;
 }
 
 _Queue_priority::task_type _Queue_priority::pop() {

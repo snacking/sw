@@ -9,19 +9,14 @@ _Thread_base::_Thread_base(threadpool *ptp) :
 	state_(_State::IDLE), ptp_(ptp) {}
 
 void _Thread_base::start() {
-    assert(false);
 }
 
 void _Thread_base::stop() {
-    assert(false);
 }
 
-_Thread_base::_State _Thread_base::state() const {
+_Thread_base::_State _Thread_base::state() {
+    ::std::lock_guard<::std::mutex> _Lock(mutex_);
     return state_;
-}
-
-_Thread_base::thread_id _Thread_base::get_thread_id() const {
-	return id_;
 }
 
 _Leader::_Leader(threadpool *ptp) : 
@@ -37,6 +32,8 @@ void _Leader::start() {
 void _Leader::stop() {
     state_ = _State::STOPPING;
     for (int i = 1; i < ptp_->pthreads_.size(); ++i) {
+        // awake workers in sleeping state EVERY CICLE, to avoid dead lock. or fall into sleeping while stopping
+        ptp_->cv_.notify_all();
         ptp_->pthreads_[i]->stop();
     }
     thread_.join();
@@ -46,14 +43,20 @@ void _Leader::stop() {
 
 void _Leader::run() {
     while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
-        auto _Start = ::std::chrono::high_resolution_clock::now();
-        while (::std::chrono::high_resolution_clock::now() - _Start < ::std::chrono::milliseconds(1000));
+        ::std::unique_lock<::std::mutex> lock(ct_mutex_);
+        ct_cv_.wait_for(lock, ::std::chrono::milliseconds(1000), [this] {
+            return state_ == _State::STOPPING || state_ == _State::STOPPED;
+        });
+        if (state_ == _State::STOPPING || state_ == _State::STOPPED) {
+            break;
+        }
         for (auto &worker : ptp_->pthreads_) {
             if (worker->state() == _State::SLEEPING) {
                 // dynamic adjust
             }
         }
     }
+    return;
 }
 
 _Worker::_Worker(threadpool *ptp) : 
@@ -74,14 +77,27 @@ void _Worker::stop() {
     return;
 }
 
+void _Worker::sleep() {
+    ::std::lock_guard<::std::mutex> _Lock(mutex_);
+    state_ = _State::SLEEPING;
+}
+
 void _Worker::run() {
     ::std::unique_ptr<_Task_base> _Task;
-    auto _Start = ::std::chrono::high_resolution_clock::now();
+    auto sw = sw::stopwatch<::std::chrono::steady_clock>();
     while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
-        if (::std::chrono::high_resolution_clock::now() - _Start > ::std::chrono::milliseconds(ptp_->keepalive_time_)) {
-            ::std::lock_guard<::std::mutex> _Lock(mutex_);
-            state_ = _State::SLEEPING;
-            while (true); // to do: wait leader to wake me up
+        if (ptp_->keepalive_time_ >= 0 && sw.elapsed() > ptp_->keepalive_time_) {
+            {
+                ::std::lock_guard<::std::mutex> _Lock(mutex_);
+                state_ = _State::SLEEPING;
+            }
+            ::std::unique_lock<::std::mutex> _Q_lock(ptp_->mutex_);
+            ptp_->cv_.wait(_Q_lock);
+            {
+                ::std::lock_guard<::std::mutex> _Lock(mutex_);
+                state_ = _State::IDLE;
+            }
+            sw.start();
         } else if (ptp_->pqueue_->try_pop(_Task)) {
             {
                 ::std::lock_guard<::std::mutex> _Lock(mutex_);
@@ -89,11 +105,12 @@ void _Worker::run() {
                 _Task->execute();
                 state_ = _State::IDLE;  
             }
-            _Start = ::std::chrono::high_resolution_clock::now();
             ptp_->info_.total_completions_.fetch_add(1);
+            sw.start();
             _Task.reset();
         }
     }
+    return;
 }
 
 _SW_END // _SW_BEGIN
