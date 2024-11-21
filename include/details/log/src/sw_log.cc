@@ -4,8 +4,8 @@
 
 _SW_BEGIN
 
-log_event::log_event(const std::string &content) :
-    file_(__FILE__), func_(__FUNC_NAME__), line_(__LINE__), thread_id_(::std::this_thread::get_id()), content_(content) {
+log_event::log_event(const char *file, const char *func, ::std::uint32_t line, const std::string &content) :
+    file_(file), func_(func), line_(line), thread_id_(::std::this_thread::get_id()), content_(content) {
     auto now_time = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
     time_ = ::std::localtime(&now_time);
 }
@@ -100,19 +100,19 @@ void log_formatter::init() {
         }
     }
     static ::std::unordered_map<::std::string, ::std::function<_Formatter_item::ptr(const ::std::string&)> > s_formatter_items = {
-#define XX(str, T) \
+#define ADD_ITEM(str, T) \
     {#str, [](const ::std::string& fmt) { return _Formatter_item::ptr(new T(fmt)); }}
-        XX(m, _Message_fotmatter_item),
-        XX(p, _Level_fotmatter_item),
-        XX(r, _Elapsed_fotmatter_item),
-        XX(c, _LoggerName_fotmatter_item),
-        XX(t, _ThreadId_fotmatter_item),
-        XX(g, _CoroutineId_fotmatter_item),
-        XX(n, _NewLine_fotmatter_item),
-        XX(d, _DateTime_fotmatter_item),
-        XX(f, _FileName_fotmatter_item),
-        XX(l, _Line_fotmatter_item),
-#undef XX
+        ADD_ITEM(m, _Message_fotmatter_item),
+        ADD_ITEM(p, _Level_fotmatter_item),
+        ADD_ITEM(r, _Elapsed_fotmatter_item),
+        ADD_ITEM(c, _LoggerName_fotmatter_item),
+        ADD_ITEM(t, _ThreadId_fotmatter_item),
+        ADD_ITEM(g, _CoroutineId_fotmatter_item),
+        ADD_ITEM(n, _NewLine_fotmatter_item),
+        ADD_ITEM(d, _DateTime_fotmatter_item),
+        ADD_ITEM(f, _FileName_fotmatter_item),
+        ADD_ITEM(l, _Line_fotmatter_item),
+#undef ADD_ITEM
     };
 }
 
@@ -185,8 +185,23 @@ void log_appender::set_formatter(log_formatter::ptr formatter) {
     pformatter_ = formatter;
 }
 
-logger::logger(const std::string &name, log_level::level level) :
-    name_(name), level_(level) {}
+explicit logger::logger(const char * fp) {
+    _Read_config_file(fp);
+}
+
+explicit logger::logger(const std::string &) {
+    _Read_config_file(fp);
+}
+#ifdef __cpp_lib_filesystem
+    explicit logger::logger(const ::std::filesystem::path &fp) {
+        _Read_config_file(fp);
+    }
+#endif // __cpp_lib_filesystem
+#ifdef __cpp_lib_string_view
+    explicit logger::logger(const ::std::string_view & fp) {
+        _Read_config_file(fp);
+    }
+#endif // __cpp_stringview
 
 void logger::log(log_level::level level, log_event::ptr event) {
     if (level >= level_) {

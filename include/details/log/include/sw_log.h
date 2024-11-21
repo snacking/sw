@@ -53,7 +53,10 @@ class log_event {
 public:
     using ptr = ::std::shared_ptr<log_event>;
 
-    log_event(const std::string &);
+    log_event(const char *, const char *, ::std::uint32_t, const std::string &);
+
+#define EVENT(content) \ 
+    ::std::make_shared<sw::log_event>(__FILE__, __FUNC_NAME__, __LINE__, content)
 
     const char *get_file() const;
     const char *get_func() const;
@@ -204,6 +207,7 @@ public:
     explicit stream_log_appender(const ::std::string& filename) : 
         file_(filename, ::std::ios::app) {
             if (!file_.is_open()) {
+                REGISTER_SW_ERROR(4, "failed to open file");
                 throw ::std::runtime_error("failed to open file: " + filename);
             }
     }
@@ -227,7 +231,16 @@ class logger : public ::std::enable_shared_from_this<logger> {
 public:
     using ptr = ::std::shared_ptr<logger>;
 
-    explicit logger(const std::string &, log_level::level);
+    explicit logger(const char *);
+    explicit logger(const std::string &);
+#ifdef __cpp_lib_filesystem
+    #include <filesystem>
+    explicit logger(const ::std::filesystem::path &);
+#endif // __cpp_lib_filesystem
+#ifdef __cpp_lib_string_view
+    #include <string_view>
+    explicit logger(const ::std::string_view &);
+#endif // __cpp_stringview
 
     void log(log_level::level, log_event::ptr);
     void debug(log_event::ptr);
@@ -241,12 +254,17 @@ public:
     log_level::level get_level() const;
     const ::std::string& get_name() const;
 private:
+    template <typename _Pt>
+    void _Read_config_file(const _Pt&);
+
     ::std::string name_;
     log_level::level level_;
     ::std::list<log_appender::ptr> appenders_;
 };
 
 _SW_END
+
+#include "./sw_log.ipp"
 
 #ifdef _SW_HEADER_ONLY_
     #include "../src/log.cc"

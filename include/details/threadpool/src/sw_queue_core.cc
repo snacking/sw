@@ -48,6 +48,7 @@ bool _Queue::push(task_type&& task) {
 _Queue_base::task_type _Queue::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
+        REGISTER_SW_ERROR(101, "pop from empty queue");
         throw ::std::runtime_error("queue is empty");
     }
     --size_;
@@ -75,7 +76,6 @@ bool _Queue_priority::push(task_type&& task) {
     if (size() >= capacity_) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
-            throw ::std::runtime_error("queue is full");
         }
         return false;
     }
@@ -87,6 +87,7 @@ bool _Queue_priority::push(task_type&& task) {
 _Queue_priority::task_type _Queue_priority::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
+        REGISTER_SW_ERROR(101, "pop from empty queue");
         throw ::std::runtime_error("queue is empty");
     }
     --size_;
