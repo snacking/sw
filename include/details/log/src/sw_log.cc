@@ -154,7 +154,7 @@ log_formatter::_DateTime_fotmatter_item::_DateTime_fotmatter_item(const std::str
 }
 
 void log_formatter::_DateTime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << std::put_time(event->get_time(), "%Y-%m-%d %H:%M:%S");
+    os << ::std::put_time(event->get_time(), "%Y-%m-%d %H:%M:%S");
 }
 
 void log_formatter::_FileName_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
