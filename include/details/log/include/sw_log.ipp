@@ -6,4 +6,4 @@ template <typename _Pt>
 void logger::_Read_config_file(const _Pt &fp) {
 }
 
-_SW_END
+_SW_END // _SW_BEGIN

@@ -6,7 +6,7 @@ _SW_BEGIN
 
 log_event::log_event(const char *file, const char *func, ::std::uint32_t line, const std::string &content) :
     file_(file), func_(func), line_(line), thread_id_(::std::this_thread::get_id()), content_(content) {
-    ::std::time_t current_time = std::time(nullptr);
+    ::std::time_t current_time = ::std::time(nullptr);
     time_ = ::std::localtime(&current_time);
 }
 
@@ -64,7 +64,7 @@ void log_formatter::init() {
         ADD_ITEM(s, _Cstr_fotmatter_item)
 #undef ADD_ITEM
     };
-    ::std::string constant_str, fmt_inside_brace;
+    ::std::string constant_str, format_inside_brace;
     ::std::string current_format_specifier;
     const ::std::size_t len = pattern_.size();
     ::std::size_t pos = 0;
@@ -87,7 +87,7 @@ void log_formatter::init() {
             case PER_SIGN:
                 break;
             case BRACE:
-                fmt_inside_brace.push_back(pattern_[pos]);
+                format_inside_brace.push_back(pattern_[pos]);
                 break;
             }
             break;
@@ -97,9 +97,9 @@ void log_formatter::init() {
         case '}':
             fmt_status = C_STR;
             if (s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
-                items_.push_back(s_formatter_items[current_format_specifier](""));
+                items_.push_back(s_formatter_items[current_format_specifier](format_inside_brace));
             }
-            current_format_specifier = fmt_inside_brace = "";
+            current_format_specifier = format_inside_brace = "";
             break;
         default:
             switch (fmt_status) {
@@ -117,7 +117,7 @@ void log_formatter::init() {
                 fmt_status = C_STR;
                 break;
             case BRACE:
-                fmt_inside_brace.push_back(pattern_[pos]);
+                format_inside_brace.push_back(pattern_[pos]);
                 break;
             }
             break;
