@@ -24,6 +24,9 @@
 #include <thread>
 #include <ctime>
 #include <iomanip>
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#endif // __cpp_lib_filesystem
 
 _SW_BEGIN
 
@@ -55,7 +58,7 @@ public:
 
     log_event(const char *, const char *, ::std::uint32_t, const std::string &);
 
-#define EVENT(content) \ 
+#define EVENT(content) \
     ::std::make_shared<sw::log_event>(__FILE__, __FUNC_NAME__, __LINE__, content)
 
     const char *get_file() const;
@@ -114,34 +117,34 @@ private:
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _LoggerName_fotmatter_item : public _Formatter_item {
+    class _Loggername_fotmatter_item : public _Formatter_item {
     public:
-        _LoggerName_fotmatter_item(const ::std::string&);
+        _Loggername_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _ThreadId_fotmatter_item : public _Formatter_item {
+    class _Threadid_fotmatter_item : public _Formatter_item {
     public:
-        _ThreadId_fotmatter_item(const ::std::string&);
+        _Threadid_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _CoroutineId_fotmatter_item : public _Formatter_item {
+    class _Coroutineid_fotmatter_item : public _Formatter_item {
     public:
-        _CoroutineId_fotmatter_item(const ::std::string&);
+        _Coroutineid_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _DateTime_fotmatter_item : public _Formatter_item {
+    class _Datetime_fotmatter_item : public _Formatter_item {
     public:
-        _DateTime_fotmatter_item(const ::std::string&);
+        _Datetime_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     private:
     };
 
-    class _FileName_fotmatter_item : public _Formatter_item {
+    class _Filename_fotmatter_item : public _Formatter_item {
     public:
-        _FileName_fotmatter_item(const ::std::string&);
+        _Filename_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
@@ -151,15 +154,15 @@ private:
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _NewLine_fotmatter_item : public _Formatter_item {
+    class _Newline_fotmatter_item : public _Formatter_item {
     public:
-        _NewLine_fotmatter_item(const ::std::string&);
+        _Newline_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
-    class _CStr_fotmatter_item : public _Formatter_item {
+    class _Cstr_fotmatter_item : public _Formatter_item {
     public:
-        _CStr_fotmatter_item(const ::std::string&);
+        _Cstr_fotmatter_item(const ::std::string&);
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     private:
     };
@@ -182,50 +185,17 @@ protected:
     log_formatter::ptr pformatter_;
 };
 
-template <typename _St>
 class stream_log_appender : public log_appender {
 public:
-    using ptr = ::std::shared_ptr<stream_log_appender<_St> >;
+    using ptr = ::std::shared_ptr<stream_log_appender>;
 
-    explicit stream_log_appender(_St &out) noexcept : out_(out) {}
+    explicit stream_log_appender(::std::ostream &);
     ~stream_log_appender() = default;
 
-    void log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) override {
-        if (level >= level_) {
-            out_ << pformatter_->format(logger, level, event);
-        }
-    }
+    void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
 private:
-    _St &out_;
+    ::std::ostream &out_;
 };
-
-template <>
-class stream_log_appender<::std::ofstream> : public log_appender {
-public:
-    using ptr = ::std::shared_ptr<stream_log_appender<::std::ofstream> >;
-
-    explicit stream_log_appender(const ::std::string& filename) : 
-        file_(filename, ::std::ios::app) {
-            if (!file_.is_open()) {
-                REGISTER_SW_ERROR(4, "failed to open file");
-                throw ::std::runtime_error("failed to open file: " + filename);
-            }
-    }
-    ~stream_log_appender() {
-        file_.close();
-    }
-    
-    void log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) override {
-        if (level >= level_) {
-            file_ << pformatter_->format(logger, level, event);
-        }
-    }
-private:
-    ::std::ofstream file_;
-};
-
-using ostream_appender = stream_log_appender<::std::ostream>;
-using ofstream_appender = stream_log_appender<::std::ofstream>;
 
 class logger : public ::std::enable_shared_from_this<logger> {
 public:
@@ -234,14 +204,8 @@ public:
     explicit logger(const char *);
     explicit logger(const std::string &);
 #ifdef __cpp_lib_filesystem
-    #include <filesystem>
     explicit logger(const ::std::filesystem::path &);
 #endif // __cpp_lib_filesystem
-#ifdef __cpp_lib_string_view
-    #include <string_view>
-    explicit logger(const ::std::string_view &);
-#endif // __cpp_stringview
-
     void log(log_level::level, log_event::ptr);
     void debug(log_event::ptr);
     void info(log_event::ptr);
@@ -250,6 +214,7 @@ public:
     void fatal(log_event::ptr);
     void add_appender(log_appender::ptr);
     void delete_appender(log_appender::ptr);
+    void set_name(const ::std::string &);
     void set_level(log_level::level);
     log_level::level get_level() const;
     const ::std::string& get_name() const;
@@ -262,7 +227,7 @@ private:
     ::std::list<log_appender::ptr> appenders_;
 };
 
-_SW_END
+_SW_END // _SW_BEGIN
 
 #include "./sw_log.ipp"
 

@@ -42,15 +42,15 @@
 	} sw_error;
 
 	#define REGISTER_SW_ERROR(code, msg) \
-		do { \
-			sw_error.code = code; \
-			if (sizeof(msg) < ERROR_MSG_SIZE) \
-				strcpy(sw_error.msg, msg); \
-			else \
-				const char error_msg_1002[] = "error message size exceeded" \
-				assert(ERROR_MSG_SIZE > sizeof(error_msg_1002) && error_msg_1002); \
-				REGISTER_SW_ERROR(1002, error_msg_1002); \
-		} while(0)
+	do { \
+		sw_error.code = code; \
+		if (sizeof(msg) < ERROR_MSG_SIZE) \
+			strcpy(sw_error.msg, msg); \
+		else \
+			const char error_msg_1002[] = "error message size exceeded" \
+			assert(ERROR_MSG_SIZE > sizeof(error_msg_1002) && error_msg_1002); \
+			REGISTER_SW_ERROR(1002, error_msg_1002); \
+	} while(0)
 
 	#define SW_ERROR_CODE sw_error.code
 	
