@@ -14,6 +14,18 @@ log_event::log_event(const char *file, const char *func, ::std::uint32_t line, c
     return _Level_to_string[static_cast<int>(level)];
 }
 
+const ::std::unordered_map<::std::string, log_level::level> log_level::_String_to_level = {
+    {"DEBUG", level::DEBUG},
+    {"INFO",  level::INFO},
+    {"WARN",  level::WARN},
+    {"ERROR", level::ERROR},
+    {"FATAL", level::FATAL}
+};
+
+log_level::level log_level::from_string(const ::std::string &str) {
+    return log_level::_String_to_level.at(str);
+}
+
 const char *log_event::get_file() const {
     return file_;
 }
@@ -114,6 +126,9 @@ void log_formatter::init() {
                 break;
             case PER_SIGN:
                 current_format_specifier = pattern_[pos];
+                if (pos == len - 1 && s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
+                    items_.push_back(s_formatter_items[current_format_specifier](""));
+                }
                 fmt_status = C_STR;
                 break;
             case BRACE:
@@ -232,6 +247,10 @@ void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level
     if (level >= level_) {
         out_ << pformatter_->format(logger, level, event);
     }
+}
+
+logger::logger() {
+    _Read_config_file(DEFAULT_CONFIG_FILE);
 }
 
 logger::logger(const char * fp) {

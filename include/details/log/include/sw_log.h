@@ -28,6 +28,8 @@
 #include <filesystem>
 #endif // __cpp_lib_filesystem
 
+#define DEFAULT_CONFIG_FILE "sw_log.properties"
+
 _SW_BEGIN
 
 class logger;
@@ -49,7 +51,10 @@ struct log_level {
         "FATAL"
     };
 
+    static const ::std::unordered_map<::std::string, level> _String_to_level;
+
     static ::std::string to_string(log_level::level);
+    static level from_string(const ::std::string&);
 };
 
 class log_event {
@@ -201,6 +206,7 @@ class logger : public ::std::enable_shared_from_this<logger> {
 public:
     using ptr = ::std::shared_ptr<logger>;
 
+    explicit logger();
     explicit logger(const char *);
     explicit logger(const std::string &);
 #ifdef __cpp_lib_filesystem
@@ -220,7 +226,7 @@ public:
     const ::std::string& get_name() const;
 private:
     template <typename _Pt>
-    void _Read_config_file(const _Pt&);
+    void _Read_config_file(const _Pt& fp);
 
     ::std::string name_;
     log_level::level level_;

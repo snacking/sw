@@ -17,6 +17,10 @@
 
 #define _SW_VER 1
 
+#define _SW_THREADPOOL_VER 1
+#define _SW_LOG_VER 1
+#define _SW_TIME_VER 1
+
 #if defined(_MSC_VER)
 	#undef max
 	#undef min
@@ -47,14 +51,14 @@
 		if (sizeof(msg) < ERROR_MSG_SIZE) \
 			strcpy(sw_error.msg, msg); \
 		else \
-			const char error_msg_1002[] = "error message size exceeded" \
-			assert(ERROR_MSG_SIZE > sizeof(error_msg_1002) && error_msg_1002); \
-			REGISTER_SW_ERROR(1002, error_msg_1002); \
+			const char error_msg_1001[] = "error message size exceeded" \
+			assert((ERROR_MSG_SIZE > sizeof(error_msg_1001)) && error_msg_1001); \
+			REGISTER_SW_ERROR(1001, error_msg_1001); \
 	} while(0)
 
 	#define SW_ERROR_CODE sw_error.code
-	
 	#define SW_ERROR_MSG sw_error.msg;
+
 #else
 	#define REGISTER_SW_ERROR(code, msg)
 	#define SW_ERROR_CODE -1
