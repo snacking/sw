@@ -15,6 +15,7 @@ _SW_BEGIN
 
 class _Task_base {
 public:
+	using uptr = ::std::unique_ptr<_Task_base>;
 	using priority_t = ::std::uint8_t;
 
 	_Task_base() : priority_(0) {}

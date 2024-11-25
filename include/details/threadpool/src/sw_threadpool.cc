@@ -5,7 +5,7 @@
 _SW_BEGIN
 
 threadpool_settings::threadpool_settings() : 
-    worker_capacity(::std::thread::hardware_concurrency()), core_capacity(0), queue_capacity(100), keepalive_time(10000), queue(QUEUE_TYPE_FIFO), handler(HANDLER_TYPE_IGNORE) { 
+    worker_capacity(::std::thread::hardware_concurrency()), core_capacity(0), queue_capacity(100), keepalive_time(10000), queue(queue_type::QUEUE_TYPE_FIFO), handler(handler_type::HANDLER_TYPE_IGNORE) { 
 }
 
 threadpool::threadpool(threadpool_settings ts) : 
@@ -22,10 +22,6 @@ threadpool::~threadpool() {
     if (state_ == _State::RUNNING) {
         _Close();
     }
-    for (int i = 0; i < pthreads_.size(); ++i) {
-        delete pthreads_[i];
-    }
-    delete pqueue_;
 }
 
 void threadpool::shutdown() {
@@ -35,10 +31,10 @@ void threadpool::shutdown() {
     return;
 }
 
-::std::vector<::std::unique_ptr<_Task_base> > threadpool::shutdown_now() {
+::std::vector<threadpool::task_ptr> threadpool::shutdown_now() {
     state_ = _State::STOPPING;
     _Close();
-    ::std::vector<::std::unique_ptr<_Task_base> > _Remains;
+    ::std::vector<threadpool::task_ptr> _Remains;
     while (!pqueue_->empty()) {
         auto _Task = pqueue_->pop();
         _Remains.emplace_back(::std::move(_Task));
@@ -51,23 +47,23 @@ void threadpool::join() {
     return;
 }
 
-_Queue_base *threadpool::_Queue_create_helper(queue_type type, ::std::size_t capacity) {
+threadpool::queue_ptr threadpool::_Queue_create_helper(queue_type type, ::std::size_t capacity) {
     switch (type) {
-    case QUEUE_TYPE_FIFO:
-        return new _Queue(capacity);
-    case QUEUE_TYPE_PRIORITY:
-        return new _Queue_priority(capacity);
+    case queue_type::QUEUE_TYPE_FIFO:
+        return ::std::make_shared<_Queue>(capacity);
+    case queue_type::QUEUE_TYPE_PRIORITY:
+        return ::std::make_shared<_Queue_priority>(capacity);
     }
-    return new _Queue(capacity);
+    return ::std::make_shared<_Queue>(capacity);
 }
 
-::std::unique_ptr<_Reject_handler_base> threadpool::_Reject_handler_create_helper(handler_type type) {
+threadpool::handler_ptr threadpool::_Reject_handler_create_helper(handler_type type) {
     switch (type) {
-    case HANDLER_TYPE_IGNORE:
+    case handler_type::HANDLER_TYPE_IGNORE:
         return ::std::make_unique<_Reject_handler_ignore>();
-    case HANDLER_TYPE_IGNORE_THROW:
+    case handler_type::HANDLER_TYPE_IGNORE_THROW:
         return ::std::make_unique<_Reject_handler_ignore_throw>();
-    case HANDLER_TYPE_DELETE_OLDEST:
+    case handler_type::HANDLER_TYPE_DELETE_OLDEST:
         return ::std::make_unique<_Reject_handler_delete_oldest>(pqueue_);
     }
     return ::std::make_unique<_Reject_handler_ignore>();

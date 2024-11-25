@@ -4,19 +4,19 @@
 
 _SW_BEGIN
 
-void _Reject_handler_ignore::reject(task_type&&) {
+void _Reject_handler_ignore::reject(_Queue_base::task_ptr&&) {
     return;
 }
 
-void _Reject_handler_ignore_throw::reject(task_type&&) {
+void _Reject_handler_ignore_throw::reject(_Queue_base::task_ptr&&) {
     throw ::std::runtime_error("queue is full");
     return;
 }
 
-_Reject_handler_delete_oldest::_Reject_handler_delete_oldest(queue_type *pqueue) :
+_Reject_handler_delete_oldest::_Reject_handler_delete_oldest(_Queue_base::ptr pqueue) :
     pqueue_(pqueue) {}
 
-void _Reject_handler_delete_oldest::reject(task_type&&) {
+void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) {
     ::std::lock_guard<::std::mutex> _Lock(pqueue_->mutex_);
     while (pqueue_->size() >= pqueue_->capacity_ - 1) pqueue_->pop();
     throw ::std::runtime_error("queue is full");
@@ -26,13 +26,13 @@ void _Reject_handler_delete_oldest::reject(task_type&&) {
 _Queue_base::_Queue_base(size_type capacity = 0) : 
     size_(0), capacity_(capacity) {}
 
-void _Queue_base::set_handler(::std::unique_ptr<_Reject_handler_base>&& handler) {
-    phandler_ = ::std::move(handler);
+void _Queue_base::set_handler(_Reject_handler_base::uptr&& phandler) {
+    phandler_ = ::std::move(phandler);
 }
 
 _Queue::_Queue(size_type capacity = 0) : _Queue_base(capacity) {}
 
-bool _Queue::push(task_type&& task) {
+bool _Queue::push(_Queue_base::task_ptr&& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (size() >= capacity_) {
         if (phandler_) {
@@ -45,7 +45,7 @@ bool _Queue::push(task_type&& task) {
     return true;
 }
 
-_Queue_base::task_type _Queue::pop() {
+_Queue_base::_Queue_base::task_ptr _Queue::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
         REGISTER_SW_ERROR(101, "pop from empty queue");
@@ -57,7 +57,7 @@ _Queue_base::task_type _Queue::pop() {
     return _Task;
 }
 
-bool _Queue::try_pop(task_type& task) {
+bool _Queue::try_pop(_Queue_base::task_ptr& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);  
     if (queue_.empty()) {  
         return false;  
@@ -71,7 +71,7 @@ bool _Queue::try_pop(task_type& task) {
 _Queue_priority::_Queue_priority(size_type capacity = 0) : 
     _Queue_base(capacity) {}
 
-bool _Queue_priority::push(task_type&& task) {
+bool _Queue_priority::push(_Queue_base::task_ptr&& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (size() >= capacity_) {
         if (phandler_) {
@@ -84,21 +84,21 @@ bool _Queue_priority::push(task_type&& task) {
     return true;
 }
 
-_Queue_priority::task_type _Queue_priority::pop() {
+_Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
         REGISTER_SW_ERROR(101, "pop from empty queue");
         throw ::std::runtime_error("queue is empty");
     }
     --size_;
-    task_type _Task;
+    _Queue_base::task_ptr _Task;
     auto& _Top = queue_.top();
     // _Task.swap(_Top);
     queue_.pop();
     return _Task;
 }
 
-bool _Queue_priority::try_pop(task_type& task) {
+bool _Queue_priority::try_pop(_Queue_base::task_ptr& task) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);  
     if (queue_.empty()) {  
         return false;  

@@ -20,6 +20,7 @@
 #include <atomic>
 #include <stdexcept>
 #include <condition_variable>
+#include <memory>
 
 _SW_BEGIN
 
@@ -48,9 +49,13 @@ public:
 	friend class _Leader;
 	friend class _Worker;
 
+	using ptr = ::std::shared_ptr<threadpool>;
 	using size_type = ::std::size_t;
-	using task_type = ::std::unique_ptr<_Task_base>;
 	using atomic_type = ::std::atomic<size_type>;
+	using task_ptr = _Task_base::uptr;
+	using queue_ptr = _Queue_base::ptr;
+	using thread_ptr = _Thread_base::ptr;
+	using handler_ptr = _Reject_handler_base::uptr;
 
 	threadpool() = delete;
 
@@ -74,7 +79,7 @@ public:
 
 	void shutdown();
 
-	::std::vector<task_type> shutdown_now();
+	::std::vector<task_ptr> shutdown_now();
 
 	void join();
 
@@ -82,9 +87,9 @@ public:
 
 	inline ::std::tuple<size_type, size_type, size_type> statistics() const;
 private:
-	_Queue_base *_Queue_create_helper(queue_type, size_type);
+	queue_ptr _Queue_create_helper(queue_type, size_type);
 
-	::std::unique_ptr<_Reject_handler_base> _Reject_handler_create_helper(handler_type);
+	handler_ptr _Reject_handler_create_helper(handler_type);
 
 	void _Init();
 
@@ -106,10 +111,10 @@ private:
 
 	size_type worker_capacity_, core_capacity_;
 	int keepalive_time_;
-	::std::vector<_Thread_base*> pthreads_;
+	::std::vector<thread_ptr> pthreads_;
 	::std::mutex mutex_;
 	::std::condition_variable cv_;
-	_Queue_base *pqueue_;
+	queue_ptr pqueue_;
 };
 
 _SW_END // _SW_BEGIN

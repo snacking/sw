@@ -30,11 +30,11 @@ inline ::std::tuple<::std::size_t, ::std::size_t, ::std::size_t> threadpool::sta
 inline void threadpool::_Init() {
     for (::std::size_t i = 0; i < worker_capacity_; ++i) {
         if (i == 0) 
-            pthreads_[i] = new _Leader(this);
+            pthreads_[i] = ::std::make_shared<_Leader>(this);
         else if(i <= core_capacity_)
-            pthreads_[i] = new _Worker(this, true);
+            pthreads_[i] = ::std::make_shared<_Worker>(this, true);
         else
-            pthreads_[i] = new _Worker(this, false);
+            pthreads_[i] = ::std::make_shared<_Worker>(this, false);
         pthreads_[i]->start();
     }
     return;

@@ -7,6 +7,7 @@
 
 #include "../../sw_vals.h"
 #include "./sw_task_core.hpp"
+#include <memory>
 #include <thread>
 #include <cstddef>
 #include <mutex>
@@ -18,6 +19,7 @@ class threadpool;
 
 class _Thread_base {
 public:
+	using ptr = ::std::shared_ptr<_Thread_base>;
 	using thread_id = ::std::thread::id;
 
 	_Thread_base(threadpool *);
@@ -67,6 +69,8 @@ protected:
 class _Leader final : 
 	public _Thread_base {
 public:
+	using ptr = ::std::shared_ptr<_Leader>;
+
 	_Leader(threadpool *ptp);
 
 	~_Leader() = default; // nothing
@@ -84,6 +88,8 @@ private:
 class _Worker final : 
 	public _Thread_base {
 public:
+	using ptr = ::std::shared_ptr<_Worker>;
+
 	_Worker(threadpool *, bool);
 
 	~_Worker() = default; // nothing

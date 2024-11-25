@@ -6,9 +6,9 @@ template <typename _Pt>
 void logger::_Read_config_file(const _Pt &fp) {
     static const ::std::string white_characters = " \t\n\r\f\v";
     auto trim = [&](const ::std::string &str) -> ::std::string {
-        size_t first = str.find_first_not_of(white_characters);
-        if (first == std::string::npos) return "";
-        size_t last = str.find_last_not_of(white_characters);
+        ::std::size_t first = str.find_first_not_of(white_characters);
+        if (first == ::std::string::npos) return "";
+        ::std::size_t last = str.find_last_not_of(white_characters);
         return str.substr(first, (last - first + 1));
     };
 
@@ -22,13 +22,13 @@ void logger::_Read_config_file(const _Pt &fp) {
 
     ::std::unordered_map<::std::string, log_appender::ptr> appenders;
     static ::std::unordered_map<::std::string, log_appender::ptr> create_appender = {
-        { "sw_log.stream_appender.stdout", ::std::make_shared<sw::stream_log_appender>(std::cout) },
-        { "sw_log.stream_appender.stderr", ::std::make_shared<sw::stream_log_appender>(std::cerr) }
+        { "sw_log.stream_appender.stdout", ::std::make_shared<sw::stream_log_appender>(::std::cout) },
+        { "sw_log.stream_appender.stderr", ::std::make_shared<sw::stream_log_appender>(::std::cerr) }
     };
     static auto add_appender = [&](const ::std::string &appender_names) {
         ::std::istringstream iss(appender_names);
         ::std::string appender_name;
-        while (std::getline(iss, appender_name, ',')) {
+        while (::std::getline(iss, appender_name, ',')) {
             appender_name = trim(appender_name);
             appenders[appender_name] = create_appender["sw_log.stream_appender.stdout"]; // by default
         }

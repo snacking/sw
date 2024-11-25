@@ -107,11 +107,11 @@ void log_formatter::init() {
             fmt_status = BRACE;
             break;
         case '}':
-            fmt_status = C_STR;
             if (s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
                 items_.push_back(s_formatter_items[current_format_specifier](format_inside_brace));
             }
             current_format_specifier = format_inside_brace = "";
+            fmt_status = C_STR;
             break;
         default:
             switch (fmt_status) {

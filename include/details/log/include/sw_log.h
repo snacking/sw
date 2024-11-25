@@ -28,6 +28,8 @@
 #include <filesystem>
 #endif // __cpp_lib_filesystem
 
+#define _SW_LOG_VER 1
+
 #define DEFAULT_CONFIG_FILE "sw_log.properties"
 
 _SW_BEGIN
