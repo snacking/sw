@@ -20,9 +20,10 @@ class threadpool;
 class _Thread_base {
 public:
 	using ptr = ::std::shared_ptr<_Thread_base>;
+	using threadpool_ptr = ::std::weak_ptr<threadpool>;
 	using thread_id = ::std::thread::id;
 
-	_Thread_base(threadpool *);
+	_Thread_base(threadpool_ptr);
 
 	virtual ~_Thread_base() = default; // nothing
 
@@ -62,16 +63,14 @@ protected:
 
 	::std::thread thread_;
 	thread_id id_;
-	threadpool *ptp_;
+	threadpool_ptr ptp_;
 	::std::mutex mutex_; // state mutex
 };
 
 class _Leader final : 
 	public _Thread_base {
 public:
-	using ptr = ::std::shared_ptr<_Leader>;
-
-	_Leader(threadpool *ptp);
+	_Leader(threadpool_ptr);
 
 	~_Leader() = default; // nothing
 	
@@ -88,9 +87,7 @@ private:
 class _Worker final : 
 	public _Thread_base {
 public:
-	using ptr = ::std::shared_ptr<_Worker>;
-
-	_Worker(threadpool *, bool);
+	_Worker(threadpool_ptr, bool);
 
 	~_Worker() = default; // nothing
 

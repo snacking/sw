@@ -8,15 +8,11 @@ threadpool_settings::threadpool_settings() :
     worker_capacity(::std::thread::hardware_concurrency()), core_capacity(0), queue_capacity(100), keepalive_time(10000), queue(queue_type::QUEUE_TYPE_FIFO), handler(handler_type::HANDLER_TYPE_IGNORE) { 
 }
 
-threadpool::threadpool(threadpool_settings ts) : 
-        worker_capacity_(ts.worker_capacity), core_capacity_(ts.core_capacity), pthreads_(ts.worker_capacity), pqueue_(_Queue_create_helper(ts.queue, ts.queue_capacity)),
-            keepalive_time_(ts.keepalive_time) {
-                assert(worker_capacity_ >= 2); // worker's number must be larger than one, since the first element of pthread is leader
-                assert(worker_capacity_ >= core_capacity_ + 1);
-                pqueue_->set_handler(_Reject_handler_create_helper(ts.handler));
-                pthreads_.resize(worker_capacity_);
-                _Init();
-            }
+threadpool::ptr threadpool::create(threadpool_settings ts) {
+    auto ptr =  threadpool::ptr(new threadpool(ts));
+    ptr->_Init();
+    return ptr;
+}
 
 threadpool::~threadpool() {
     if (state_ == _State::RUNNING) {
@@ -45,6 +41,15 @@ void threadpool::shutdown() {
 void threadpool::join() {
     while (!pqueue_->empty());
     return;
+}
+
+threadpool::threadpool(threadpool_settings ts) : 
+    worker_capacity_(ts.worker_capacity), core_capacity_(ts.core_capacity), pthreads_(ts.worker_capacity), pqueue_(_Queue_create_helper(ts.queue, ts.queue_capacity)),
+        keepalive_time_(ts.keepalive_time) {
+    assert(worker_capacity_ >= 2); // worker's number must be larger than one, since the first element of pthreads_ is leader
+    assert(worker_capacity_ >= core_capacity_ + 1);
+    pqueue_->set_handler(_Reject_handler_create_helper(ts.handler));
+    pthreads_.resize(worker_capacity_);
 }
 
 threadpool::queue_ptr threadpool::_Queue_create_helper(queue_type type, ::std::size_t capacity) {

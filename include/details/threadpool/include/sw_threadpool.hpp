@@ -44,12 +44,13 @@ struct threadpool_settings {
 		handler(reject handler)
 	)
 */
-class threadpool {
+class threadpool : public ::std::enable_shared_from_this<threadpool> {
 public:
 	friend class _Leader;
 	friend class _Worker;
 
 	using ptr = ::std::shared_ptr<threadpool>;
+	using wptr = ::std::weak_ptr<threadpool>;
 	using size_type = ::std::size_t;
 	using atomic_type = ::std::atomic<size_type>;
 	using task_ptr = _Task_base::uptr;
@@ -57,9 +58,9 @@ public:
 	using thread_ptr = _Thread_base::ptr;
 	using handler_ptr = _Reject_handler_base::uptr;
 
-	threadpool() = delete;
+	static ptr create(threadpool_settings);
 
-	explicit threadpool(threadpool_settings);
+	threadpool() = delete;
 
 	threadpool(const threadpool&) = delete;
 
@@ -87,6 +88,8 @@ public:
 
 	inline ::std::tuple<size_type, size_type, size_type> statistics() const;
 private:
+	explicit threadpool(threadpool_settings);
+
 	queue_ptr _Queue_create_helper(queue_type, size_type);
 
 	handler_ptr _Reject_handler_create_helper(handler_type);

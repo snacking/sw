@@ -206,14 +206,17 @@ private:
 
 class logger : public ::std::enable_shared_from_this<logger> {
 public:
+    friend ::std::shared_ptr<logger>;
+
     using ptr = ::std::shared_ptr<logger>;
 
-    explicit logger();
-    explicit logger(const char *);
-    explicit logger(const std::string &);
+    static ptr create();
+    static ptr create(const char *);
+    static ptr create(const std::string &);
 #ifdef __cpp_lib_filesystem
-    explicit logger(const ::std::filesystem::path &);
+    static ptr create(const ::std::filesystem::path &);
 #endif // __cpp_lib_filesystem
+
     void log(log_level::level, log_event::ptr);
     void debug(log_event::ptr);
     void info(log_event::ptr);
@@ -227,6 +230,13 @@ public:
     log_level::level get_level() const;
     const ::std::string& get_name() const;
 private:
+    explicit logger();
+    explicit logger(const char *);
+    explicit logger(const std::string &);
+#ifdef __cpp_lib_filesystem
+    explicit logger(const ::std::filesystem::path &);
+#endif // __cpp_lib_filesystem
+
     template <typename _Pt>
     void _Read_config_file(const _Pt& fp);
 

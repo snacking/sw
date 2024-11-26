@@ -249,20 +249,21 @@ void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level
     }
 }
 
-logger::logger() {
-    _Read_config_file(DEFAULT_CONFIG_FILE);
+logger::ptr logger::create() {
+    return logger::ptr(new logger());
 }
 
-logger::logger(const char * fp) {
-    _Read_config_file(fp);
+logger::ptr logger::create(const char *fp) {
+    return logger::ptr(new logger(fp));
 }
 
-logger::logger(const std::string &fp) {
-    _Read_config_file(fp);
+logger::ptr logger::create(const std::string &fp) {
+    return logger::ptr(new logger(fp));
 }
+
 #ifdef __cpp_lib_filesystem
-logger::logger(const ::std::filesystem::path &fp) {
-    _Read_config_file(fp);
+logger::ptr logger::create(const ::std::filesystem::path &fp) {
+    return logger::ptr(new logger(fp));
 }
 #endif // __cpp_lib_filesystem
 
@@ -322,5 +323,22 @@ log_level::level logger::get_level() const {
 const ::std::string& logger::get_name() const {
     return name_;
 }
+
+logger::logger() {
+    _Read_config_file(DEFAULT_CONFIG_FILE);
+}
+
+logger::logger(const char * fp) {
+    _Read_config_file(fp);
+}
+
+logger::logger(const std::string &fp) {
+    _Read_config_file(fp);
+}
+#ifdef __cpp_lib_filesystem
+logger::logger(const ::std::filesystem::path &fp) {
+    _Read_config_file(fp);
+}
+#endif // __cpp_lib_filesystem
 
 _SW_END
