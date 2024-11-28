@@ -52,6 +52,7 @@ public:
 	~task() = default; // nothing
 
 	task& operator = (const task&) = delete;
+	
 	task& operator = (task&&) = delete;
 
 	void execute() override {

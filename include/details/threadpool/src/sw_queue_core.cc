@@ -48,7 +48,6 @@ bool _Queue::push(_Queue_base::task_ptr&& task) {
 _Queue_base::_Queue_base::task_ptr _Queue::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
-        REGISTER_SW_ERROR(101, "pop from empty queue");
         throw ::std::runtime_error("queue is empty");
     }
     --size_;
@@ -87,7 +86,6 @@ bool _Queue_priority::push(_Queue_base::task_ptr&& task) {
 _Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
-        REGISTER_SW_ERROR(101, "pop from empty queue");
         throw ::std::runtime_error("queue is empty");
     }
     --size_;

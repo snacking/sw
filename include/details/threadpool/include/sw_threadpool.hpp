@@ -28,6 +28,7 @@ struct threadpool_settings {
 	using size_type = ::std::size_t;
 
 	threadpool_settings();
+	
 	size_type worker_capacity, core_capacity, queue_capacity;
 	int keepalive_time;
 	queue_type queue;

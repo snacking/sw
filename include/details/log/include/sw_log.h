@@ -5,6 +5,7 @@
 
 #include "../../sw_vals.h"
 
+#include "../../properties/include/sw_properties.hpp"
 #include "../../time/include/sw_time.hpp"
 
 #include <cstdint>
@@ -24,6 +25,7 @@
 #include <thread>
 #include <ctime>
 #include <iomanip>
+#include <regex>
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
 #endif // __cpp_lib_filesystem
@@ -43,19 +45,22 @@ struct log_level {
         WARN,
         ERROR,
         FATAL,
+        NONE
     };
 
-    static constexpr ::std::array<const char*, 5> _Level_to_string = {
+    static constexpr ::std::array<const char*, 6> _Level_to_string = {
         "DEBUG",
         "INFO",
         "WARN",
         "ERROR",
-        "FATAL"
+        "FATAL",
+        "NONE"
     };
 
     static const ::std::unordered_map<::std::string, level> _String_to_level;
 
     static ::std::string to_string(log_level::level);
+
     static level from_string(const ::std::string&);
 };
 
@@ -69,12 +74,19 @@ public:
     ::std::make_shared<sw::log_event>(__FILE__, __FUNC_NAME__, __LINE__, content)
 
     const char *get_file() const;
+
     const char *get_func() const;
+
     ::std::uint64_t get_elapsed() const;
+
     ::std::uint32_t get_line() const;
+
     ::std::thread::id get_thread_id() const;
+    
     ::std::string get_coroutine_id() const;
+
     ::std::tm *get_time() const;
+
     ::std::string get_content() const;
 private:
     const char *file_, *func_;
@@ -90,17 +102,25 @@ class log_formatter {
 public:
     using ptr = ::std::shared_ptr<log_formatter>;
 
-    log_formatter(const ::std::string&);
+    virtual ~log_formatter() = default;
 
-    void init();
-    ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr);
+    virtual ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
+};
+
+class pattern_log_formatter : public log_formatter {
+public:
+    pattern_log_formatter(const ::std::string&);
+
+    ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
 private:
     class _Formatter_item {
     public:
         using ptr = ::std::shared_ptr<_Formatter_item>;
         
         _Formatter_item(const ::std::string&);
+
         virtual ~_Formatter_item() = default;
+
         virtual void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
     protected:
         const ::std::string format_;
@@ -109,73 +129,89 @@ private:
     class _Message_fotmatter_item : public _Formatter_item {
     public:
         _Message_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
     
     class _Level_fotmatter_item : public _Formatter_item {
     public:
         _Level_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
     
     class _Elapsed_fotmatter_item : public _Formatter_item {
     public:
         _Elapsed_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Loggername_fotmatter_item : public _Formatter_item {
     public:
         _Loggername_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Threadid_fotmatter_item : public _Formatter_item {
     public:
         _Threadid_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Coroutineid_fotmatter_item : public _Formatter_item {
     public:
         _Coroutineid_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Datetime_fotmatter_item : public _Formatter_item {
     public:
         _Datetime_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
-    private:
     };
 
     class _Filename_fotmatter_item : public _Formatter_item {
     public:
         _Filename_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Line_fotmatter_item : public _Formatter_item {
     public:
         _Line_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Newline_fotmatter_item : public _Formatter_item {
     public:
         _Newline_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
     };
 
     class _Cstr_fotmatter_item : public _Formatter_item {
     public:
         _Cstr_fotmatter_item(const ::std::string&);
+
         void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
-    private:
     };
+
+    void _Parse_pattern();
 
     const ::std::string pattern_;
     ::std::vector<_Formatter_item::ptr> items_;
+};
+
+enum class formatter_type : ::std::uint8_t {
+    PATTERN_FORMATTER,
+    NONE
 };
 
 class log_appender {
@@ -185,8 +221,14 @@ public:
     virtual ~log_appender() = default;
 
     virtual void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
+
     log_formatter::ptr get_formatter() const;
+
     void set_formatter(log_formatter::ptr);
+
+    void set_level(log_level::level);
+
+    log_level::level get_level() const;
 protected:
     log_level::level level_;
     log_formatter::ptr pformatter_;
@@ -194,9 +236,8 @@ protected:
 
 class stream_log_appender : public log_appender {
 public:
-    using ptr = ::std::shared_ptr<stream_log_appender>;
-
     explicit stream_log_appender(::std::ostream &);
+    
     ~stream_log_appender() = default;
 
     void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
@@ -204,45 +245,138 @@ private:
     ::std::ostream &out_;
 };
 
+class fstream_log_appender : public log_appender {
+public:
+    explicit fstream_log_appender(const ::std::string &);
+    
+    ~fstream_log_appender();
+
+    void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+private:
+    ::std::ofstream out_;
+};
+
+
+class rolling_fstream_log_appender : public log_appender {
+public:
+    using size_type = ::std::size_t;
+
+    explicit rolling_fstream_log_appender(const ::std::string &);
+    
+    ~rolling_fstream_log_appender();
+
+    void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+private:
+    size_type current_size_, max_size_;
+    ::std::ofstream out_;
+};
+
+enum class appender_type : ::std::uint8_t {
+    STREAM_APPENDER,
+    FSTREAM_APPENDER,
+    ROLLING_FSTREAM_APPENDER,
+    NONE
+};
+
 class logger : public ::std::enable_shared_from_this<logger> {
 public:
-    friend ::std::shared_ptr<logger>;
+    // class _Properties_parse;
+    // friend class _Properties_paser;
 
     using ptr = ::std::shared_ptr<logger>;
 
-    static ptr create();
-    static ptr create(const char *);
-    static ptr create(const std::string &);
+    static ptr get_logger(const std::string &);
+
+    static void configure();
+
+    static void configure(const char *);
+
+    static void configure(const std::string &);
+
 #ifdef __cpp_lib_filesystem
-    static ptr create(const ::std::filesystem::path &);
+    static void configure(const ::std::filesystem::path &);
 #endif // __cpp_lib_filesystem
 
     void log(log_level::level, log_event::ptr);
+
     void debug(log_event::ptr);
+
     void info(log_event::ptr);
+
     void warn(log_event::ptr);
+
     void error(log_event::ptr);
+
     void fatal(log_event::ptr);
-    void add_appender(log_appender::ptr);
-    void delete_appender(log_appender::ptr);
+
+    void add_appender(const ::std::string &, log_appender::ptr);
+
+    void delete_appender(const ::std::string &);
+
     void set_name(const ::std::string &);
+
     void set_level(log_level::level);
+
     log_level::level get_level() const;
+
     const ::std::string& get_name() const;
 private:
-    explicit logger();
-    explicit logger(const char *);
-    explicit logger(const std::string &);
+    class _Properties_parser {
+    public:
+        _Properties_parser(const char *);
+
+        _Properties_parser(const std::string &);
+
 #ifdef __cpp_lib_filesystem
-    explicit logger(const ::std::filesystem::path &);
+        _Properties_parser(const ::std::filesystem::path &);
 #endif // __cpp_lib_filesystem
 
-    template <typename _Pt>
-    void _Read_config_file(const _Pt& fp);
+        ~_Properties_parser() = default;
+    private:
+        enum class state {
+            INIT,
+            SW_LOG,
+            LOGGER,
+            APPENDER,
+            FORMATTER,
+            FAILED,
+            FINISHED
+        };
+        
+        struct appender_meta {
+            appender_meta() : at(appender_type::NONE), ll(log_level::level::NONE), ft(formatter_type::NONE) {}
+            appender_type at;
+            log_level::level ll;
+            formatter_type ft;
+        };
+
+        template <typename _Pt>
+        void _Load_properties(_Pt);
+
+        void _Parse();
+
+        state _Parse_init(const ::std::string &, ::std::string &);
+
+        state _Parse_sw_log(const ::std::string &, ::std::size_t, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &, const ::std::string &);
+
+        state _Parse_logger(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+
+        state _Parse_appender(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+
+        state _Parse_formatter(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+
+        properties properties_;
+    };
+
+    explicit logger(const std::string &);
+
+    bool _Is_complete_logger() const;
+
+    static ::std::unordered_map<::std::string, ptr> sploggers_;
 
     ::std::string name_;
     log_level::level level_;
-    ::std::list<log_appender::ptr> appenders_;
+    ::std::unordered_map<::std::string, log_appender::ptr> pappenders_;
 };
 
 _SW_END // _SW_BEGIN

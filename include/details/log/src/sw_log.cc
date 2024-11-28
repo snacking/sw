@@ -23,7 +23,7 @@ const ::std::unordered_map<::std::string, log_level::level> log_level::_String_t
 };
 
 log_level::level log_level::from_string(const ::std::string &str) {
-    return log_level::_String_to_level.at(str);
+    return log_level::_String_to_level.find(str) == log_level::_String_to_level.end() ? log_level::level::NONE : log_level::_String_to_level.at(str);
 }
 
 const char *log_event::get_file() const {
@@ -54,13 +54,100 @@ const char *log_event::get_file() const {
     return content_;
 }
 
-log_formatter::log_formatter(const ::std::string &pattern) :
+pattern_log_formatter::pattern_log_formatter(const ::std::string &pattern) :
     pattern_(pattern) {
-    init();
+    _Parse_pattern();
 }
 
-void log_formatter::init() {
-    static ::std::unordered_map<::std::string, ::std::function<_Formatter_item::ptr(const ::std::string&)> > s_formatter_items = {
+::std::string pattern_log_formatter::format(logger::ptr logger, log_level::level level, log_event::ptr event) {
+    ::std::stringstream ss;
+    for (auto &p : items_) {
+        p->format(ss, logger, level, event);
+    }
+    return ss.str();
+}
+
+pattern_log_formatter::_Formatter_item::_Formatter_item(const ::std::string& format) : format_(format) {}
+
+pattern_log_formatter::_Message_fotmatter_item::_Message_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Message_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_content();
+}
+
+pattern_log_formatter::_Level_fotmatter_item::_Level_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Level_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << log_level::to_string(level);
+}
+
+pattern_log_formatter::_Elapsed_fotmatter_item::_Elapsed_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Elapsed_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_elapsed();
+}
+
+pattern_log_formatter::_Loggername_fotmatter_item::_Loggername_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Loggername_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << logger->get_name();
+}
+
+pattern_log_formatter::_Threadid_fotmatter_item::_Threadid_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Threadid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_thread_id();
+}
+
+pattern_log_formatter::_Coroutineid_fotmatter_item::_Coroutineid_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Coroutineid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_coroutine_id();
+}
+
+pattern_log_formatter::_Datetime_fotmatter_item::_Datetime_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Datetime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << ::std::put_time(event->get_time(), format_.c_str());
+}
+
+pattern_log_formatter::_Filename_fotmatter_item::_Filename_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Filename_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_file();
+}
+
+pattern_log_formatter::_Line_fotmatter_item::_Line_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Line_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << event->get_line();
+}
+
+pattern_log_formatter::_Newline_fotmatter_item::_Newline_fotmatter_item(const std::string &format) : _Formatter_item(format) {
+}
+
+void pattern_log_formatter::_Newline_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << ::std::endl;
+}
+
+pattern_log_formatter::_Cstr_fotmatter_item::_Cstr_fotmatter_item(const ::std::string& str) : _Formatter_item(str) {
+}
+
+void pattern_log_formatter::_Cstr_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
+    os << format_;
+}
+
+void pattern_log_formatter::_Parse_pattern() {
+    static ::std::unordered_map<::std::string, ::std::function<_Formatter_item::ptr(const ::std::string&)> > formatter_items = {
 #define ADD_ITEM(str, T) \
     {#str, [](const ::std::string& fmt) { return _Formatter_item::ptr(new T(fmt)); }}
         ADD_ITEM(m, _Message_fotmatter_item),
@@ -80,7 +167,7 @@ void log_formatter::init() {
     ::std::string current_format_specifier;
     const ::std::size_t len = pattern_.size();
     ::std::size_t pos = 0;
-    enum {
+    enum state : ::std::uint8_t {
         C_STR,
         PER_SIGN,
         BRACE
@@ -89,49 +176,49 @@ void log_formatter::init() {
         switch (pattern_[pos]) {
         case '%':
             switch (fmt_status) {
-            case C_STR:
+            case state::C_STR:
                 if (!constant_str.empty()) {
-                    items_.push_back(s_formatter_items["s"](constant_str));
+                    items_.push_back(formatter_items["s"](constant_str));
                     constant_str = "";
                 }
-                fmt_status = PER_SIGN;
+                fmt_status = state::PER_SIGN;
                 break;
-            case PER_SIGN:
+            case state::PER_SIGN:
                 break;
-            case BRACE:
+            case state::BRACE:
                 format_inside_brace.push_back(pattern_[pos]);
                 break;
             }
             break;
         case '{':
-            fmt_status = BRACE;
+            fmt_status = state::BRACE;
             break;
         case '}':
-            if (s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
-                items_.push_back(s_formatter_items[current_format_specifier](format_inside_brace));
+            if (formatter_items.find(current_format_specifier) != formatter_items.end()) {
+                items_.push_back(formatter_items[current_format_specifier](format_inside_brace));
             }
             current_format_specifier = format_inside_brace = "";
-            fmt_status = C_STR;
+            fmt_status = state::C_STR;
             break;
         default:
             switch (fmt_status) {
-            case C_STR:
+            case state::C_STR:
                 if (!current_format_specifier.empty()) {
-                    if (s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
-                        items_.push_back(s_formatter_items[current_format_specifier](""));
+                    if (formatter_items.find(current_format_specifier) != formatter_items.end()) {
+                        items_.push_back(formatter_items[current_format_specifier](""));
                     }
                     current_format_specifier = "";
                 }
                 constant_str += pattern_[pos];
                 break;
-            case PER_SIGN:
+            case state::PER_SIGN:
                 current_format_specifier = pattern_[pos];
-                if (pos == len - 1 && s_formatter_items.find(current_format_specifier) != s_formatter_items.end()) {
-                    items_.push_back(s_formatter_items[current_format_specifier](""));
+                if (pos == len - 1 && formatter_items.find(current_format_specifier) != formatter_items.end()) {
+                    items_.push_back(formatter_items[current_format_specifier](""));
                 }
-                fmt_status = C_STR;
+                fmt_status = state::C_STR;
                 break;
-            case BRACE:
+            case state::BRACE:
                 format_inside_brace.push_back(pattern_[pos]);
                 break;
             }
@@ -140,104 +227,25 @@ void log_formatter::init() {
         ++pos;
     }
     if (!constant_str.empty()) {
-        items_.push_back(s_formatter_items["s"](constant_str));
+        items_.push_back(formatter_items["s"](constant_str));
     }
     return;
 }
 
-::std::string log_formatter::format(logger::ptr logger, log_level::level level, log_event::ptr event) {
-    ::std::stringstream ss;
-    for (auto &p : items_) {
-        p->format(ss, logger, level, event);
-    }
-    return ss.str();
-}
-
-log_formatter::_Formatter_item::_Formatter_item(const ::std::string& format) : format_(format) {}
-
-log_formatter::_Message_fotmatter_item::_Message_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Message_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_content();
-}
-
-log_formatter::_Level_fotmatter_item::_Level_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Level_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << log_level::to_string(level);
-}
-
-log_formatter::_Elapsed_fotmatter_item::_Elapsed_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Elapsed_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_elapsed();
-}
-
-log_formatter::_Loggername_fotmatter_item::_Loggername_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Loggername_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << logger->get_name();
-}
-
-log_formatter::_Threadid_fotmatter_item::_Threadid_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Threadid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_thread_id();
-}
-
-log_formatter::_Coroutineid_fotmatter_item::_Coroutineid_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Coroutineid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_coroutine_id();
-}
-
-log_formatter::_Datetime_fotmatter_item::_Datetime_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Datetime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << ::std::put_time(event->get_time(), format_.c_str());
-}
-
-log_formatter::_Filename_fotmatter_item::_Filename_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Filename_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_file();
-}
-
-log_formatter::_Line_fotmatter_item::_Line_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Line_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << event->get_line();
-}
-
-log_formatter::_Newline_fotmatter_item::_Newline_fotmatter_item(const std::string &format) : _Formatter_item(format) {
-}
-
-void log_formatter::_Newline_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << ::std::endl;
-}
-
-log_formatter::_Cstr_fotmatter_item::_Cstr_fotmatter_item(const ::std::string& str) : _Formatter_item(str) {
-}
-
-void log_formatter::_Cstr_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) {
-    os << format_;
-}
-
-log_formatter::ptr log_appender::get_formatter() const {
+pattern_log_formatter::ptr log_appender::get_formatter() const {
     return pformatter_;
 }
 
-void log_appender::set_formatter(log_formatter::ptr pformatter) {
+void log_appender::set_formatter(pattern_log_formatter::ptr pformatter) {
     pformatter_ = pformatter;
+}
+
+void log_appender::set_level(log_level::level level) {
+    level_ = level;
+}
+
+log_level::level log_appender::get_level() const {
+    return level_;
 }
 
 stream_log_appender::stream_log_appender(::std::ostream &out) : out_(out) {
@@ -249,28 +257,77 @@ void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level
     }
 }
 
-logger::ptr logger::create() {
-    return logger::ptr(new logger());
+fstream_log_appender::fstream_log_appender(const ::std::string &fp) : out_(fp) {
+    if (!out_.is_open()) {
+        throw ::std::runtime_error("open file failed");
+    }
 }
 
-logger::ptr logger::create(const char *fp) {
-    return logger::ptr(new logger(fp));
+fstream_log_appender::~fstream_log_appender() {
+    out_.close();
 }
 
-logger::ptr logger::create(const std::string &fp) {
-    return logger::ptr(new logger(fp));
+void fstream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) {
+    if (level >= level_) {
+        out_ << pformatter_->format(logger, level, event);
+    }
+}
+
+rolling_fstream_log_appender::rolling_fstream_log_appender(const ::std::string &fp) : out_(fp) {
+    if (!out_.is_open()) {
+        throw ::std::runtime_error("open file failed");
+    }
+}
+
+rolling_fstream_log_appender::~rolling_fstream_log_appender() {
+    out_.close();
+}
+
+void rolling_fstream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) {
+    if (level >= level_) {
+        out_ << pformatter_->format(logger, level, event);
+    }
+}
+
+
+logger::ptr logger::get_logger(const std::string &logger_name) {
+    static bool configured = false;
+    if (!configured) {
+        try {
+            logger::configure();
+        } catch (const std::exception &e) {
+            throw e;
+        }
+        configured = true;
+    }
+    if (logger::sploggers_.find(logger_name) == logger::sploggers_.end()) {
+        throw ::std::runtime_error("logger not found");
+    }
+    return logger::sploggers_[logger_name];
+}
+
+void logger::configure() {
+    auto parser = _Properties_parser(DEFAULT_CONFIG_FILE);
+}
+
+void logger::configure(const char *fp) {
+    auto parser = _Properties_parser(fp);
+}
+
+void logger::configure(const std::string &fp) {
+    auto parser = _Properties_parser(fp);
 }
 
 #ifdef __cpp_lib_filesystem
-logger::ptr logger::create(const ::std::filesystem::path &fp) {
-    return logger::ptr(new logger(fp));
+void logger::configure(const ::std::filesystem::path &fp) {
+    auto parser = _Properties_parser(fp);
 }
 #endif // __cpp_lib_filesystem
 
 void logger::log(log_level::level level, log_event::ptr event) {
     if (level >= level_) {
-        for (auto &appender : appenders_) {
-            appender->log(shared_from_this(), level, event);
+        for (auto &pappender : pappenders_) {
+            pappender.second->log(shared_from_this(), level, event);
         }
     }
 }
@@ -295,14 +352,14 @@ void logger::fatal(log_event::ptr event) {
     log(log_level::level::FATAL, event);
 }
 
-void logger::add_appender(log_appender::ptr pappender) {
-    appenders_.push_back(pappender);
+void logger::add_appender(const ::std::string &appender_name, log_appender::ptr pappender) {
+    pappenders_[appender_name] = pappender;
 }
 
-void logger::delete_appender(log_appender::ptr pappender) {
-    for (auto it = appenders_.begin(); it != appenders_.end(); ++it) {
-        if (*it == pappender) {
-            appenders_.erase(it);
+void logger::delete_appender(const ::std::string &appender_name) {
+    for (auto it = pappenders_.begin(); it != pappenders_.end(); ++it) {
+        if (it->first == appender_name) {
+            pappenders_.erase(it);
             break;
         }
     }
@@ -324,21 +381,216 @@ const ::std::string& logger::get_name() const {
     return name_;
 }
 
-logger::logger() {
-    _Read_config_file(DEFAULT_CONFIG_FILE);
+logger::logger(const std::string &name) : name_(name), level_(log_level::level::INFO) {
 }
 
-logger::logger(const char * fp) {
-    _Read_config_file(fp);
+bool logger::_Is_complete_logger() const {
+    if (name_.empty() || pappenders_.empty()) {
+        return false;
+    }
+    for (auto &pappender : pappenders_) {
+        if (!pappender.second) {
+            return false;
+        }
+        if (!pappender.second->get_formatter()) {
+            return false;
+        }
+    }
+    return true;
 }
 
-logger::logger(const std::string &fp) {
-    _Read_config_file(fp);
+logger::_Properties_parser::_Properties_parser(const char *fp) {
+    _Load_properties(fp);
+    _Parse();
 }
+
+logger::_Properties_parser::_Properties_parser(const std::string &fp) {
+    _Load_properties(fp);
+    _Parse();
+}
+
 #ifdef __cpp_lib_filesystem
-logger::logger(const ::std::filesystem::path &fp) {
-    _Read_config_file(fp);
+logger::_Properties_parser::_Properties_parser(const ::std::filesystem::path &fp) {
+    _Load_properties(fp);
+    _Parse();
 }
 #endif // __cpp_lib_filesystem
+
+void logger::_Properties_parser::_Parse() {
+    ::std::unordered_map<::std::string, appender_meta> appender_meta_cache;
+    for (auto it = properties_.begin(); it != properties_.end(); ++it) {
+        auto key_parse_state = state::INIT;
+        auto &[key, value] = *it;
+        auto key_elements = split(key, '.');
+        auto key_elements_size = key_elements.size();
+        ::std::string current_logger_name, current_log_appender_name;
+        for (auto & key_element : key_elements) {
+            key_element = trim(key_element);
+            switch (key_parse_state) {
+            case state::INIT:
+                key_parse_state = _Parse_init(key_element, current_logger_name);
+                break;
+            case state::SW_LOG:
+                key_parse_state = _Parse_sw_log(key_element, key_elements_size, current_logger_name, appender_meta_cache, value);
+                break;
+            case state::LOGGER:
+                key_parse_state = _Parse_logger(key_element, key_elements_size, current_logger_name, current_log_appender_name, appender_meta_cache, value);
+                break;
+            case state::APPENDER:
+                key_parse_state = _Parse_appender(key_element, key_elements_size, current_logger_name, current_log_appender_name, appender_meta_cache, value);
+                break;
+            case state::FORMATTER:
+                key_parse_state = _Parse_formatter(key_element, key_elements_size, current_logger_name, current_log_appender_name, appender_meta_cache, value);
+                break;
+            }
+            if (key_parse_state == state::FAILED) {
+                break;
+            }
+            if (key_parse_state == state::FINISHED) {
+                break;
+            }
+        }
+    }
+    for (auto it = logger::sploggers_.begin(); it != logger::sploggers_.end();) {
+        if (!it->second->_Is_complete_logger()) {
+            it = logger::sploggers_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_init(const ::std::string &element, ::std::string &current_logger_name) {
+    if (element != "sw_log") {
+        return state::FAILED;
+    }
+    current_logger_name = element;
+    return state::SW_LOG;
+}
+
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(const ::std::string &element, ::std::size_t size, ::std::string &current_logger_name, ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) {
+    current_logger_name = element;
+    ::std::string meta_key;
+    switch (size) {
+    case 0:
+    case 1:
+        return state::FAILED;
+    case 2:
+        logger::sploggers_[current_logger_name] = logger::ptr(new logger(current_logger_name));
+        for (auto &current_appender_name : split(value, ',')) {
+            current_appender_name = trim(current_appender_name);
+            if (current_appender_name == "NONE") {
+                return state::FAILED;
+            } else if (log_level::from_string(current_appender_name) != log_level::level::NONE) {
+                logger::sploggers_[current_logger_name]->set_level(log_level::from_string(current_appender_name));
+            } else {
+                logger::sploggers_[current_logger_name]->add_appender(current_appender_name, nullptr);
+                meta_key = current_logger_name + " " + current_appender_name;
+                appender_meta_cache[meta_key] = appender_meta();
+            }
+        }
+        return state::FINISHED;
+    default:
+        if (logger::sploggers_.find(current_logger_name) == logger::sploggers_.end()) return state::FAILED;
+        return state::LOGGER;
+    }
+    return state::FAILED;
+}
+
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_logger(const ::std::string &element, ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) {
+    static const ::std::unordered_map<::std::string, appender_type> appender_types = {
+        { "sw_log.stream_appender", appender_type::STREAM_APPENDER },
+        { "sw_log.file_appender", appender_type::FSTREAM_APPENDER },
+        { "sw_log.rolling_file_appender", appender_type::ROLLING_FSTREAM_APPENDER }
+    };
+    current_log_appender_name = element;
+    auto meta_key = current_logger_name + " " + current_log_appender_name;
+    switch (size) {
+    case 0:
+    case 1:
+    case 2:
+        return state::FAILED;
+    case 3:
+        if (appender_meta_cache.find(meta_key) == appender_meta_cache.end()) return state::FAILED;
+        if (appender_types.find(value) == appender_types.end()) return state::FAILED;
+        appender_meta_cache[meta_key].at = appender_types.at(value);
+        return state::FINISHED;
+    default:
+        return state::APPENDER;
+    }
+    return state::FAILED;
+}
+
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_appender(const ::std::string &element, ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) {
+    static const ::std::unordered_map<::std::string, ::std::ostream &> stream_types = {
+        { "stdout", ::std::cout },
+        { "stderr", ::std::cerr },
+        { "stdlog", ::std::clog }
+    };
+    static const ::std::unordered_map<::std::string, formatter_type> formatter_types = {
+        { "sw_log.pattern_layout", formatter_type::PATTERN_FORMATTER }
+    };
+    auto meta_key = current_logger_name + " " + current_log_appender_name;
+    switch (size) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        return state::FAILED;
+    case 4:
+        if (element == "target") {
+            if (appender_meta_cache.find(meta_key) == appender_meta_cache.end() || appender_meta_cache[meta_key].at != appender_type::STREAM_APPENDER) return state::FAILED;
+            if (stream_types.find(value) == stream_types.end()) return state::FAILED;
+            logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new stream_log_appender(stream_types.at(value))));
+            return state::FINISHED;
+        } else if (element == "file") {
+            if (appender_meta_cache.find(meta_key) == appender_meta_cache.end() || (appender_meta_cache[meta_key].at != appender_type::FSTREAM_APPENDER && appender_meta_cache[meta_key].at != appender_type::ROLLING_FSTREAM_APPENDER)) return state::FAILED;
+            if (appender_meta_cache[meta_key].at == appender_type::FSTREAM_APPENDER) {
+                logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new fstream_log_appender(value)));
+            } else {
+                logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new rolling_fstream_log_appender(value)));
+            }
+            return state::FINISHED;
+        } else if (element == "threshold") {
+            if (appender_meta_cache.find(meta_key) == appender_meta_cache.end()) return state::FAILED;
+            if (log_level::from_string(value) == log_level::level::NONE) return state::FAILED;
+            appender_meta_cache[meta_key].ll = log_level::from_string(value);
+            return state::FINISHED;
+        } else if (element == "layout") {
+            if (appender_meta_cache.find(meta_key) == appender_meta_cache.end()) return state::FAILED;
+            if (formatter_types.find(value) == formatter_types.end()) return state::FAILED;
+            appender_meta_cache[meta_key].ft = formatter_types.at(value);
+            return state::FINISHED;
+        }
+        break;
+    default:
+        return state::FORMATTER;
+    }
+    return state::FAILED;
+}
+
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(const ::std::string &element, ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) {
+    auto meta_key = current_logger_name + " " + current_log_appender_name;
+    switch (size) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        return state::FAILED;
+    case 5:
+        if (element != "conversion_pattern") return state::FAILED;
+        if (appender_meta_cache.find(meta_key) == appender_meta_cache.end()) return state::FAILED;
+        if (logger::sploggers_[current_logger_name]->pappenders_[current_log_appender_name] == nullptr) return state::FAILED;
+        if (appender_meta_cache[meta_key].ft != formatter_type::PATTERN_FORMATTER) return state::FAILED;
+        logger::sploggers_[current_logger_name]->pappenders_[current_log_appender_name]->set_formatter(log_formatter::ptr(new pattern_log_formatter(value)));
+        return state::FINISHED;
+    default:
+        return state::FAILED;
+    }
+    return state::FAILED;
+}
+
+::std::unordered_map<::std::string, logger::ptr> logger::sploggers_;
 
 _SW_END

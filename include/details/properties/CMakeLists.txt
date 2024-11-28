@@ -1,18 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(threadpool)
+project(properties)
 
-set(THREADPOOL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(THREADPOOL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(PROPERTIES_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PROPERTIES_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
-file(GLOB THREADPOOL_SRCS "${THREADPOOL_SOURCE_DIR}/*.cc")
+file(GLOB PROPERTIES_SRCS "${PROPERTIES_SOURCE_DIR}/*.cc")
 
-set(LIBRARY_NAME "threadpool")
+set(LIBRARY_NAME "properties")
 
-add_library(${LIBRARY_NAME}_static STATIC ${THREADPOOL_SRCS})
-add_library(${LIBRARY_NAME}_shared SHARED ${THREADPOOL_SRCS})
+add_library(${LIBRARY_NAME}_static STATIC ${PROPERTIES_SRCS})
+add_library(${LIBRARY_NAME}_shared SHARED ${PROPERTIES_SRCS})
 
 set_target_properties(${LIBRARY_NAME}_static PROPERTIES 
     ARCHIVE_OUTPUT_DIRECTORY ${ARCHIVE_OUTPUT_DIRECTORY}
@@ -27,5 +27,5 @@ set_target_properties(${LIBRARY_NAME}_shared PROPERTIES
     INSTALL_RPATH ${LIBRARY_OUTPUT_DIRECTORY}
 )
 
-target_include_directories(${LIBRARY_NAME}_static PUBLIC ${THREADPOOL_INCLUDE_DIR})
-target_include_directories(${LIBRARY_NAME}_shared PUBLIC ${THREADPOOL_INCLUDE_DIR})
+target_include_directories(${LIBRARY_NAME}_static PUBLIC ${PROPERTIES_INCLUDE_DIR})
+target_include_directories(${LIBRARY_NAME}_shared PUBLIC ${PROPERTIES_INCLUDE_DIR})
