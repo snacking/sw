@@ -1,6 +1,6 @@
 // implementation file for sw_log.h
 
-#include "../include/sw_log.h"
+#include "../include/sw_log.hpp"
 
 _SW_BEGIN
 
@@ -289,19 +289,21 @@ void rolling_fstream_log_appender::log(::std::shared_ptr<logger> logger, log_lev
     }
 }
 
+logger::ptr logger::get_root_logger() {
+    return get_logger("root");
+}
 
 logger::ptr logger::get_logger(const std::string &logger_name) {
     static bool configured = false;
     if (!configured) {
-        try {
-            logger::configure();
-        } catch (const std::exception &e) {
-            throw e;
-        }
+        logger::_Init_root_logger();
+        logger::configure();
         configured = true;
     }
     if (logger::sploggers_.find(logger_name) == logger::sploggers_.end()) {
-        throw ::std::runtime_error("logger not found");
+        logger *plogger = new logger(*get_root_logger().get());
+        plogger->set_name(logger_name);
+        logger::sploggers_[logger_name] = logger::ptr(plogger);
     }
     return logger::sploggers_[logger_name];
 }
@@ -381,7 +383,20 @@ const ::std::string& logger::get_name() const {
     return name_;
 }
 
+void logger::_Init_root_logger() {
+    auto root_logger = ::std::shared_ptr<logger>(new logger("root"));
+    auto root_logger_log_appender = ::std::make_shared<stream_log_appender>(std::cout);
+    auto root_logger_log_formatter = ::std::make_shared<pattern_log_formatter>("[%d{%Y-%m-%d %H:%M:%S}] [%p] [%t] %m %n");
+    root_logger_log_appender->set_formatter(root_logger_log_formatter);
+    root_logger->add_appender("stdout", root_logger_log_appender);
+    sploggers_["root"] = root_logger;
+}
+
+
 logger::logger(const std::string &name) : name_(name), level_(log_level::level::INFO) {
+}
+
+logger::logger(const logger &other) : name_(other.name_), level_(other.level_), pappenders_(other.pappenders_) {
 }
 
 bool logger::_Is_complete_logger() const {

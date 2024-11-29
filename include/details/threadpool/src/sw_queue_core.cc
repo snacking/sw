@@ -1,6 +1,6 @@
 // implementation file for sw::_Queue_base and derived (internal)
 
-#include "../include/sw_queue_core.h"
+#include "../include/sw_queue_core.hpp"
 
 _SW_BEGIN
 

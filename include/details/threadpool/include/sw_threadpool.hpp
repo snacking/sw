@@ -5,9 +5,9 @@
 
 #include "../../sw_vals.h"
 
-#include "./sw_thread.h"
-#include "./sw_queue_core.h"
-#include "./sw_task_core.hpp"
+#include "sw_thread.hpp"
+#include "sw_queue_core.hpp"
+#include "sw_task_core.hpp"
 
 #include <future>
 #include <utility>

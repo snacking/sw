@@ -26,6 +26,7 @@
 #include <ctime>
 #include <iomanip>
 #include <regex>
+#include <cassert>
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
 #endif // __cpp_lib_filesystem
@@ -280,10 +281,9 @@ enum class appender_type : ::std::uint8_t {
 
 class logger : public ::std::enable_shared_from_this<logger> {
 public:
-    // class _Properties_parse;
-    // friend class _Properties_paser;
-
     using ptr = ::std::shared_ptr<logger>;
+
+    static ptr get_root_logger();
 
     static ptr get_logger(const std::string &);
 
@@ -368,7 +368,11 @@ private:
         properties properties_;
     };
 
+    static void _Init_root_logger();
+
     explicit logger(const std::string &);
+
+    logger(const logger &);
 
     bool _Is_complete_logger() const;
 
@@ -380,6 +384,41 @@ private:
 };
 
 _SW_END // _SW_BEGIN
+
+#ifdef _SW_DEBUG_
+	#define ERROR_MSG_SIZE 128
+
+	struct {
+		int code;
+		char msg[ERROR_MSG_SIZE];
+	} sw_error;
+
+	inline const char *error_msg_1001 = "error message size exceeded";
+
+	#define REGISTER_SW_ERROR(CODE, MSG) \
+	do { \
+		sw_error.code = CODE; \
+		if (strlen(MSG) < ERROR_MSG_SIZE) \
+			strcpy(sw_error.msg, MSG); \
+		else \
+			assert((ERROR_MSG_SIZE > strlen(error_msg_1001)) && error_msg_1001); \
+			sw_error.code = 1001; \
+			strcpy(sw_error.msg, error_msg_1001); \
+	} while(0)
+
+	#define SW_ERROR_CODE sw_error.code
+	#define SW_ERROR_MSG sw_error.msg;
+
+	#define SW_ASSERT(expr) \
+		if (!(expr)) { \
+			
+		}
+#else
+	#define REGISTER_SW_ERROR(code, msg)
+	#define SW_ERROR_CODE -1
+	#define SW_ERROR_MSG "DEBUG MODE IS NOT ENABLED"
+	#define SW_ASSERT(expr)
+#endif // _SW_DEBUG_
 
 #include "./sw_log.ipp"
 

@@ -6,11 +6,12 @@
 #include "../../time/include/sw_time.hpp"
 
 #include "../../sw_vals.h"
-#include "./sw_task_core.hpp"
+#include "sw_task_core.hpp"
 #include <memory>
 #include <thread>
 #include <cstddef>
 #include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 
 _SW_BEGIN
@@ -64,7 +65,7 @@ protected:
 	::std::thread thread_;
 	thread_id id_;
 	threadpool_ptr ptp_;
-	::std::mutex mutex_; // state mutex
+	::std::shared_mutex mutex_; // state mutex
 };
 
 class _Leader final : 

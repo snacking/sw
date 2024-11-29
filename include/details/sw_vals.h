@@ -26,37 +26,5 @@
 	#define __FUNC_NAME__ __FUNCTION__
 #endif // #if defined(__GNUC__) || defined(__clang__)
 
-#ifdef _SW_DEBUG_
-    #include <cassert>
-	#include <cstring>
-
-	#define ERROR_MSG_SIZE 128
-
-	struct {
-		int code;
-		char msg[ERROR_MSG_SIZE];
-	} sw_error;
-
-	inline const char *error_msg_1001 = "error message size exceeded";
-
-	#define REGISTER_SW_ERROR(CODE, MSG) \
-	do { \
-		sw_error.code = CODE; \
-		if (strlen(MSG) < ERROR_MSG_SIZE) \
-			strcpy(sw_error.msg, MSG); \
-		else \
-			assert((ERROR_MSG_SIZE > strlen(error_msg_1001)) && error_msg_1001); \
-			sw_error.code = 1001; \
-			strcpy(sw_error.msg, error_msg_1001); \
-	} while(0)
-
-	#define SW_ERROR_CODE sw_error.code
-	#define SW_ERROR_MSG sw_error.msg;
-#else
-	#define REGISTER_SW_ERROR(code, msg)
-	#define SW_ERROR_CODE -1
-	#define SW_ERROR_MSG "DEBUG MODE IS NOT ENABLED"
-#endif // _SW_DEBUG_
-
 #endif // _SW_VALS_H_
 

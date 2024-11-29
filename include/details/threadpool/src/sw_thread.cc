@@ -1,6 +1,6 @@
 // implementation file for sw::_Thread_base and derived (internal)
 
-#include "../include/sw_thread.h"
+#include "../include/sw_thread.hpp"
 #include "../include/sw_threadpool.hpp"
 
 _SW_BEGIN
@@ -15,7 +15,7 @@ void _Thread_base::stop() {
 }
 
 _Thread_base::_State _Thread_base::state() {
-    ::std::lock_guard<::std::mutex> _Lock(mutex_);
+    ::std::shared_lock<::std::shared_mutex> lock(mutex_);
     return state_;
 }
 
@@ -33,7 +33,6 @@ void _Leader::stop() {
     state_ = _State::STOPPING;
     auto ptp = ptp_.lock();
     for (int i = 1; i < ptp->pthreads_.size(); ++i) {
-        // awake workers in sleeping state EVERY CICLE, to avoid dead lock. or fall into sleeping while stopping
         ptp->cv_.notify_all();
         ptp->pthreads_[i]->stop();
     }
@@ -72,7 +71,7 @@ void _Worker::start() {
 }
 
 void _Worker::stop() {
-    ::std::lock_guard<::std::mutex> _Lock(mutex_);
+    ::std::unique_lock<::std::shared_mutex> lock(mutex_);
     state_ = _State::STOPPING;
     thread_.join();
     state_ = _State::STOPPED;
@@ -80,7 +79,7 @@ void _Worker::stop() {
 }
 
 void _Worker::sleep() {
-    ::std::lock_guard<::std::mutex> _Lock(mutex_);
+    ::std::unique_lock<::std::shared_mutex> lock(mutex_);
     state_ = _State::SLEEPING;
 }
 
@@ -91,19 +90,19 @@ void _Worker::run() {
     while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
         if (ptp->keepalive_time_ >= 0 && !is_core_ && sw.elapsed() > ptp->keepalive_time_ * 1000) {
             {
-                ::std::lock_guard<::std::mutex> _Lock(mutex_);
+                ::std::unique_lock<::std::shared_mutex> lock(mutex_);
                 state_ = _State::SLEEPING;
             }
-            ::std::unique_lock<::std::mutex> _Q_lock(ptp->mutex_);
-            ptp->cv_.wait(_Q_lock);
+            ::std::unique_lock<::std::mutex> q_lock(ptp->mutex_);
+            ptp->cv_.wait(q_lock);
             {
-                ::std::lock_guard<::std::mutex> _Lock(mutex_);
+                ::std::unique_lock<::std::shared_mutex> lock(mutex_);
                 state_ = _State::IDLE;
             }
             sw.start();
         } else if (ptp->pqueue_->try_pop(_Task)) {
             {
-                ::std::lock_guard<::std::mutex> _Lock(mutex_);
+                ::std::unique_lock<::std::shared_mutex> lock(mutex_);
                 state_ = _State::RUNNING;
                 _Task->execute();
                 state_ = _State::IDLE;  

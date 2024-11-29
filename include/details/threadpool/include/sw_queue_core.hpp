@@ -4,7 +4,7 @@
 #define _SW_QUEUE_CORE_H_
 
 #include "../../sw_vals.h"
-#include "./sw_task_core.hpp"
+#include "sw_task_core.hpp"
 
 #include <deque>
 #include <queue>
