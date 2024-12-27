@@ -24,9 +24,9 @@ public:
 	using threadpool_ptr = ::std::weak_ptr<threadpool>;
 	using thread_id = ::std::thread::id;
 
-	_Thread_base(threadpool_ptr);
+	_Thread_base(threadpool_ptr) _NOEXCEPT;
 
-	virtual ~_Thread_base() = default; // nothing
+	virtual ~_Thread_base() _NOEXCEPT = default; // nothing
 
 	virtual void start() = 0;
 
@@ -36,7 +36,7 @@ public:
 
 	_State state() ;
 
-	inline thread_id get_thread_id() const;
+	inline thread_id get_thread_id() const _NOEXCEPT;
 protected:
 	virtual void run() = 0;
 
@@ -71,15 +71,15 @@ protected:
 class _Leader final : 
 	public _Thread_base {
 public:
-	_Leader(threadpool_ptr);
+	_Leader(threadpool_ptr) _NOEXCEPT;
 
-	~_Leader() = default; // nothing
+	~_Leader() _NOEXCEPT = default; // nothing
 	
-	void start() override;
+	void start() _NOEXCEPT override;
 
-	void stop() override;
+	void stop() _NOEXCEPT override;
 private:
-	void run() override;
+	void run() _NOEXCEPT override;
 
 	::std::mutex ct_mutex_; // time counter helper mutex
 	::std::condition_variable ct_cv_; // time counter helper cv
@@ -88,17 +88,17 @@ private:
 class _Worker final : 
 	public _Thread_base {
 public:
-	_Worker(threadpool_ptr, bool);
+	_Worker(threadpool_ptr, bool) _NOEXCEPT;
 
-	~_Worker() = default; // nothing
+	~_Worker() _NOEXCEPT = default; // nothing
 
-	void start() override;
+	void start() _NOEXCEPT override;
 
-	void stop() override;
+	void stop() _NOEXCEPT override;
 
-	void sleep();
+	void sleep() _NOEXCEPT;
 private:
-	void run() override;
+	void run() _NOEXCEPT override;
 
 	bool is_core_;
 };

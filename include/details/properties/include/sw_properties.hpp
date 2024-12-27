@@ -25,39 +25,39 @@ public:
     using iterator = value_type::iterator;
     using const_iterator =  value_type::const_iterator;
 
-    explicit properties() = default;
+    explicit properties() _NOEXCEPT = default;
 
-    ~properties() = default;
+    ~properties() _NOEXCEPT = default;
 
     void load(::std::istream &);
 
     void store(::std::ostream &) const;
 
-    inline size_type size() const;
+    inline size_type size() const _NOEXCEPT;
 
-    inline bool empty() const;
+    inline bool empty() const _NOEXCEPT;
 
     inline const ::std::string get_property(const ::std::string &) const;
 
-    inline const ::std::string get_property(const ::std::string &, const ::std::string &) const;
+    inline const ::std::string get_property(const ::std::string &, const ::std::string &) const _NOEXCEPT;
 
-    inline void set_property(const ::std::string &, const ::std::string &);
+    inline void set_property(const ::std::string &, const ::std::string &) _NOEXCEPT;
 
-    ::std::string delete_property(const ::std::string &);
+    ::std::string delete_property(const ::std::string &) _NOEXCEPT;
 
-    inline ::std::string &operator [](const ::std::string &);
+    inline ::std::string &operator [](const ::std::string &) _NOEXCEPT;
 
-    inline bool contains_key(const ::std::string &) const;
+    inline bool contains_key(const ::std::string &) const _NOEXCEPT;
 
-    inline void clear();
+    inline void clear() _NOEXCEPT;
 
-    inline iterator begin();
+    inline iterator begin() _NOEXCEPT;
 
-    inline iterator end();
+    inline iterator end() _NOEXCEPT;
 
-    inline const_iterator begin() const;
+    inline const_iterator begin() const _NOEXCEPT;
 
-    inline const_iterator end() const;
+    inline const_iterator end() const _NOEXCEPT;
 private:
     ::std::unordered_map<::std::string, ::std::size_t> map_;
     value_type value_;

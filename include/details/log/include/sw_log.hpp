@@ -60,35 +60,35 @@ struct log_level {
 
     static const ::std::unordered_map<::std::string, level> _String_to_level;
 
-    static ::std::string to_string(log_level::level);
+    static ::std::string to_string(log_level::level) _NOEXCEPT;
 
-    static level from_string(const ::std::string&);
+    static level from_string(const ::std::string&) _NOEXCEPT;
 };
 
 class log_event {
 public:
     using ptr = ::std::shared_ptr<log_event>;
 
-    log_event(const char *, const char *, ::std::uint32_t, const std::string &);
+    log_event(const char *, const char *, ::std::uint32_t, const std::string &) _NOEXCEPT;
 
 #define EVENT(content) \
     ::std::make_shared<sw::log_event>(__FILE__, __FUNC_NAME__, __LINE__, content)
 
-    const char *get_file() const;
+    const char *get_file() const _NOEXCEPT;
 
-    const char *get_func() const;
+    const char *get_func() const _NOEXCEPT;
 
-    ::std::uint64_t get_elapsed() const;
+    ::std::uint64_t get_elapsed() const _NOEXCEPT;
 
-    ::std::uint32_t get_line() const;
+    ::std::uint32_t get_line() const _NOEXCEPT;
 
-    ::std::thread::id get_thread_id() const;
+    ::std::thread::id get_thread_id() const _NOEXCEPT;
     
-    ::std::string get_coroutine_id() const;
+    ::std::string get_coroutine_id() const _NOEXCEPT;
 
-    ::std::tm *get_time() const;
+    ::std::tm *get_time() const _NOEXCEPT;
 
-    ::std::string get_content() const;
+    ::std::string get_content() const _NOEXCEPT;
 private:
     const char *file_, *func_;
     stopwatch<::std::chrono::steady_clock> sw_;
@@ -103,24 +103,24 @@ class log_formatter {
 public:
     using ptr = ::std::shared_ptr<log_formatter>;
 
-    virtual ~log_formatter() = default;
+    virtual ~log_formatter() _NOEXCEPT = default;
 
     virtual ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
 };
 
 class pattern_log_formatter : public log_formatter {
 public:
-    pattern_log_formatter(const ::std::string&);
+    pattern_log_formatter(const ::std::string&) _NOEXCEPT;
 
-    ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    ::std::string format(::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
 private:
     class _Formatter_item {
     public:
         using ptr = ::std::shared_ptr<_Formatter_item>;
         
-        _Formatter_item(const ::std::string&);
+        _Formatter_item(const ::std::string&) _NOEXCEPT;
 
-        virtual ~_Formatter_item() = default;
+        virtual ~_Formatter_item() _NOEXCEPT = default;
 
         virtual void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
     protected:
@@ -129,79 +129,79 @@ private:
 
     class _Message_fotmatter_item : public _Formatter_item {
     public:
-        _Message_fotmatter_item(const ::std::string&);
+        _Message_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
     
     class _Level_fotmatter_item : public _Formatter_item {
     public:
-        _Level_fotmatter_item(const ::std::string&);
+        _Level_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
     
     class _Elapsed_fotmatter_item : public _Formatter_item {
     public:
-        _Elapsed_fotmatter_item(const ::std::string&);
+        _Elapsed_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Loggername_fotmatter_item : public _Formatter_item {
     public:
-        _Loggername_fotmatter_item(const ::std::string&);
+        _Loggername_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Threadid_fotmatter_item : public _Formatter_item {
     public:
-        _Threadid_fotmatter_item(const ::std::string&);
+        _Threadid_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Coroutineid_fotmatter_item : public _Formatter_item {
     public:
-        _Coroutineid_fotmatter_item(const ::std::string&);
+        _Coroutineid_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Datetime_fotmatter_item : public _Formatter_item {
     public:
-        _Datetime_fotmatter_item(const ::std::string&);
+        _Datetime_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Filename_fotmatter_item : public _Formatter_item {
     public:
-        _Filename_fotmatter_item(const ::std::string&);
+        _Filename_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Line_fotmatter_item : public _Formatter_item {
     public:
-        _Line_fotmatter_item(const ::std::string&);
+        _Line_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Newline_fotmatter_item : public _Formatter_item {
     public:
-        _Newline_fotmatter_item(const ::std::string&);
+        _Newline_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     class _Cstr_fotmatter_item : public _Formatter_item {
     public:
-        _Cstr_fotmatter_item(const ::std::string&);
+        _Cstr_fotmatter_item(const ::std::string&) _NOEXCEPT;
 
-        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+        void format(::std::ostream&, ::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
     };
 
     void _Parse_pattern();
@@ -219,17 +219,17 @@ class log_appender {
 public:
     using ptr = ::std::shared_ptr<log_appender>;
 
-    virtual ~log_appender() = default;
+    virtual ~log_appender() _NOEXCEPT = default;
 
     virtual void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) = 0;
 
-    log_formatter::ptr get_formatter() const;
+    log_formatter::ptr get_formatter() const _NOEXCEPT;
 
-    void set_formatter(log_formatter::ptr);
+    void set_formatter(log_formatter::ptr) _NOEXCEPT;
 
-    void set_level(log_level::level);
+    void set_level(log_level::level) _NOEXCEPT;
 
-    log_level::level get_level() const;
+    log_level::level get_level() const _NOEXCEPT;
 protected:
     log_level::level level_;
     log_formatter::ptr pformatter_;
@@ -237,11 +237,11 @@ protected:
 
 class stream_log_appender : public log_appender {
 public:
-    explicit stream_log_appender(::std::ostream &);
+    explicit stream_log_appender(::std::ostream &) _NOEXCEPT;
     
-    ~stream_log_appender() = default;
+    ~stream_log_appender() _NOEXCEPT = default;
 
-    void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) override;
+    void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) _NOEXCEPT override;
 private:
     ::std::ostream &out_;
 };
@@ -283,43 +283,43 @@ class logger : public ::std::enable_shared_from_this<logger> {
 public:
     using ptr = ::std::shared_ptr<logger>;
 
-    static ptr get_root_logger();
+    static ptr get_root_logger() _NOEXCEPT;
 
-    static ptr get_logger(const std::string &);
+    static ptr get_logger(const std::string &) _NOEXCEPT;
 
-    static void configure();
+    static void configure() _NOEXCEPT;
 
-    static void configure(const char *);
+    static void configure(const char *) throw(::std::runtime_error);
 
-    static void configure(const std::string &);
+    static void configure(const std::string &) throw(::std::runtime_error);
 
 #ifdef __cpp_lib_filesystem
-    static void configure(const ::std::filesystem::path &);
+    static void configure(const ::std::filesystem::path &) throw(::std::runtime_error);
 #endif // __cpp_lib_filesystem
 
-    void log(log_level::level, log_event::ptr);
+    void log(log_level::level, log_event::ptr) _NOEXCEPT;
 
-    void debug(log_event::ptr);
+    void debug(log_event::ptr) _NOEXCEPT;
 
-    void info(log_event::ptr);
+    void info(log_event::ptr) _NOEXCEPT;
 
-    void warn(log_event::ptr);
+    void warn(log_event::ptr) _NOEXCEPT;
 
-    void error(log_event::ptr);
+    void error(log_event::ptr) _NOEXCEPT;
 
-    void fatal(log_event::ptr);
+    void fatal(log_event::ptr) _NOEXCEPT;
 
-    void add_appender(const ::std::string &, log_appender::ptr);
+    void add_appender(const ::std::string &, log_appender::ptr) _NOEXCEPT;
 
-    void delete_appender(const ::std::string &);
+    void delete_appender(const ::std::string &) _NOEXCEPT;
 
-    void set_name(const ::std::string &);
+    void set_name(const ::std::string &) _NOEXCEPT;
 
-    void set_level(log_level::level);
+    void set_level(log_level::level) _NOEXCEPT;
 
-    log_level::level get_level() const;
+    log_level::level get_level() const _NOEXCEPT;
 
-    const ::std::string& get_name() const;
+    const ::std::string& get_name() const _NOEXCEPT;
 private:
     class _Properties_parser {
     public:
@@ -331,7 +331,7 @@ private:
         _Properties_parser(const ::std::filesystem::path &);
 #endif // __cpp_lib_filesystem
 
-        ~_Properties_parser() = default;
+        ~_Properties_parser() _NOEXCEPT = default;
     private:
         enum class state {
             INIT,
@@ -344,7 +344,7 @@ private:
         };
         
         struct appender_meta {
-            appender_meta() : at(appender_type::NONE), ll(log_level::level::NONE), ft(formatter_type::NONE) {}
+            appender_meta() _NOEXCEPT : at(appender_type::NONE), ll(log_level::level::NONE), ft(formatter_type::NONE) {}
             appender_type at;
             log_level::level ll;
             formatter_type ft;
@@ -355,26 +355,26 @@ private:
 
         void _Parse();
 
-        state _Parse_init(const ::std::string &, ::std::string &);
+        state _Parse_init(const ::std::string &, ::std::string &) _NOEXCEPT;
 
-        state _Parse_sw_log(const ::std::string &, ::std::size_t, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &, const ::std::string &);
+        state _Parse_sw_log(const ::std::string &, ::std::size_t, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &, const ::std::string &) _NOEXCEPT;
 
-        state _Parse_logger(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+        state _Parse_logger(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _NOEXCEPT;
 
-        state _Parse_appender(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+        state _Parse_appender(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _NOEXCEPT;
 
-        state _Parse_formatter(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &);
+        state _Parse_formatter(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _NOEXCEPT;
 
         properties properties_;
     };
 
-    static void _Init_root_logger();
+    static void _Init_root_logger() _NOEXCEPT;
 
-    explicit logger(const std::string &);
+    explicit logger(const std::string &) _NOEXCEPT;
 
-    logger(const logger &);
+    logger(const logger &) _NOEXCEPT;
 
-    bool _Is_complete_logger() const;
+    bool _Is_complete_logger() const _NOEXCEPT;
 
     static ::std::unordered_map<::std::string, ptr> sploggers_;
 
@@ -384,41 +384,6 @@ private:
 };
 
 _SW_END // _SW_BEGIN
-
-#ifdef _SW_DEBUG_
-	#define ERROR_MSG_SIZE 128
-
-	struct {
-		int code;
-		char msg[ERROR_MSG_SIZE];
-	} sw_error;
-
-	inline const char *error_msg_1001 = "error message size exceeded";
-
-	#define REGISTER_SW_ERROR(CODE, MSG) \
-	do { \
-		sw_error.code = CODE; \
-		if (strlen(MSG) < ERROR_MSG_SIZE) \
-			strcpy(sw_error.msg, MSG); \
-		else \
-			assert((ERROR_MSG_SIZE > strlen(error_msg_1001)) && error_msg_1001); \
-			sw_error.code = 1001; \
-			strcpy(sw_error.msg, error_msg_1001); \
-	} while(0)
-
-	#define SW_ERROR_CODE sw_error.code
-	#define SW_ERROR_MSG sw_error.msg;
-
-	#define SW_ASSERT(expr) \
-		if (!(expr)) { \
-			
-		}
-#else
-	#define REGISTER_SW_ERROR(code, msg)
-	#define SW_ERROR_CODE -1
-	#define SW_ERROR_MSG "DEBUG MODE IS NOT ENABLED"
-	#define SW_ASSERT(expr)
-#endif // _SW_DEBUG_
 
 #include "./sw_log.ipp"
 

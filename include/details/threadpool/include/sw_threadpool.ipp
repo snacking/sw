@@ -5,17 +5,17 @@ _SW_BEGIN
 template <typename _Fn, typename... _Args>  
 ::std::future<typename ::std::invoke_result<_Fn, _Args...>::type> threadpool::submit(_Fn&& fn, _Args&&... args) {
     static_assert(!::std::is_same<typename ::std::invoke_result<_Fn, _Args...>::type, void>::value, "return type not supported");
-    auto _Promise = ::std::make_shared<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >();
-    _Create_and_push_task(_Promise, std::forward<_Fn>(fn), std::forward<_Args>(args)...);
-    return _Promise->get_future();
+    auto promise = ::std::make_shared<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >();
+    _Create_and_push_task(promise, std::forward<_Fn>(fn), std::forward<_Args>(args)...);
+    return promise->get_future();
 }
 
 template <typename _Fn, typename... _Args>  
 void threadpool::execute(_Fn&& fn, _Args&&... args) {
     static_assert(::std::is_invocable<_Fn, _Args...>::value, "function not callable");
     static_assert(::std::is_same<typename ::std::invoke_result<_Fn, _Args...>::type, void>::value, "return type not supported");
-    auto _Promise = ::std::make_shared<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >(); 
-    _Create_and_push_task(_Promise, std::forward<_Fn>(fn), std::forward<_Args>(args)...);
+    auto promise = ::std::make_shared<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >(); 
+    _Create_and_push_task(promise, std::forward<_Fn>(fn), std::forward<_Args>(args)...);
     return;
 }
 

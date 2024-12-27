@@ -59,7 +59,7 @@ public:
 	using thread_ptr = _Thread_base::ptr;
 	using handler_ptr = _Reject_handler_base::uptr;
 
-	static ptr create(threadpool_settings);
+	static ptr create(threadpool_settings) _NOEXCEPT;
 
 	threadpool() = delete;
 
@@ -71,7 +71,7 @@ public:
 
 	threadpool& operator=(threadpool&&) = delete;
 
-	~threadpool();
+	~threadpool() _NOEXCEPT;
 
 	template <typename _Fn, typename... _Args>  
     ::std::future<typename ::std::invoke_result<_Fn, _Args...>::type> submit(_Fn&&, _Args&&...);
@@ -79,25 +79,25 @@ public:
 	template <typename _Fn, typename... _Args>  
     void execute(_Fn&&, _Args&&...);
 
-	void shutdown();
+	void shutdown() _NOEXCEPT;
 
-	::std::vector<task_ptr> shutdown_now();
+	::std::vector<task_ptr> shutdown_now() _NOEXCEPT;
 
-	void join();
+	void join() _NOEXCEPT;
 
-	inline size_type size() const;
+	inline size_type size() const _NOEXCEPT;
 
-	inline ::std::tuple<size_type, size_type, size_type> statistics() const;
+	inline ::std::tuple<size_type, size_type, size_type> statistics() const _NOEXCEPT;
 private:
-	explicit threadpool(threadpool_settings);
+	explicit threadpool(threadpool_settings) _NOEXCEPT;
 
-	queue_ptr _Queue_create_helper(queue_type, size_type);
+	queue_ptr _Queue_create_helper(queue_type, size_type) _NOEXCEPT;
 
-	handler_ptr _Reject_handler_create_helper(handler_type);
+	handler_ptr _Reject_handler_create_helper(handler_type) _NOEXCEPT;
 
-	void _Init();
+	void _Init() _NOEXCEPT;
 
-	inline void _Close();
+	inline void _Close() _NOEXCEPT;
 
 	template <typename _Fn, typename... _Args>
 	inline void _Create_and_push_task(::std::shared_ptr<::std::promise<typename ::std::invoke_result<_Fn, _Args...>::type> >, _Fn&&, _Args&&...);

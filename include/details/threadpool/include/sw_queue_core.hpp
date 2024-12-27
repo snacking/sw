@@ -45,9 +45,9 @@ public:
 	using task_ptr = _Task_base::uptr;
 	using handler_ptr = _Reject_handler_base::uptr;
 
-	_Queue_base(size_type);
+	_Queue_base(size_type) _NOEXCEPT;
 
-	virtual ~_Queue_base() = default;
+	virtual ~_Queue_base() _NOEXCEPT = default;
 
 	virtual bool push(task_ptr&&) = 0;
 
@@ -55,11 +55,11 @@ public:
 
 	virtual bool try_pop(task_ptr&) = 0;
 
-	inline bool empty() const;
+	inline bool empty() const _NOEXCEPT;
 
-	inline size_type size() const;
+	inline size_type size() const _NOEXCEPT;
 
-	void set_handler(handler_ptr&&);
+	void set_handler(handler_ptr&&) _NOEXCEPT;
 protected:
 	::std::mutex mutex_;
 	volatile size_type size_, capacity_;
@@ -69,7 +69,7 @@ protected:
 class _Reject_handler_ignore : 
 	public _Reject_handler_base {
 public:
-	void reject(task_ptr&&) override;
+	void reject(task_ptr&&) _NOEXCEPT override;
 };
 
 class _Reject_handler_ignore_throw : 
@@ -81,8 +81,8 @@ public:
 class _Reject_handler_delete_oldest : 
 	public _Reject_handler_base {
 public:
-	_Reject_handler_delete_oldest(_Queue_base::ptr);
-	void reject(task_ptr&&) override;
+	_Reject_handler_delete_oldest(_Queue_base::ptr) _NOEXCEPT;
+	void reject(task_ptr&&) _NOEXCEPT override;
 private:
 	_Queue_base::ptr pqueue_;
 };
@@ -92,13 +92,13 @@ class _Queue :
 public:
 	using ptr = ::std::shared_ptr<_Queue>;
 
-	_Queue(size_type);
+	_Queue(size_type) _NOEXCEPT;
 
 	bool push(task_ptr&&) override;
 
 	task_ptr pop() override;
 
-	bool try_pop(task_ptr&) override;
+	bool try_pop(task_ptr&) _NOEXCEPT override;
 private:
 	::std::deque<task_ptr> queue_;
 };
@@ -108,18 +108,16 @@ class _Queue_priority :
 public:
 	using ptr = ::std::shared_ptr<_Queue_priority>;
 
-	_Queue_priority(size_type);
+	_Queue_priority(size_type) _NOEXCEPT;
 
 	bool push(task_ptr&& task) override;
 
 	task_ptr pop() override;
 
-	bool try_pop(task_ptr& task) override;
+	bool try_pop(task_ptr& task) _NOEXCEPT override;
 private:
 	struct _Comparator {
-		bool operator()(const task_ptr& lhs, const task_ptr& rhs) const {
-			return lhs->get_priority() < rhs->get_priority();
-		}
+		bool operator()(const task_ptr&, const task_ptr&) const _NOEXCEPT;
 	};
 
 	::std::priority_queue<task_ptr, ::std::vector<task_ptr>, _Comparator> queue_;

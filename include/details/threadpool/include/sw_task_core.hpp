@@ -18,15 +18,15 @@ public:
 	using uptr = ::std::unique_ptr<_Task_base>;
 	using priority_t = ::std::uint8_t;
 
-	_Task_base() : priority_(0) {}
+	_Task_base() _NOEXCEPT;
 
-	virtual ~_Task_base() = default; // nothing
+	virtual ~_Task_base() _NOEXCEPT = default; // nothing
 
 	virtual void execute() = 0;
 
-	inline void set_priority(priority_t) noexcept;
+	inline void set_priority(priority_t) _NOEXCEPT;
 
-	inline priority_t get_priority() const noexcept;
+	inline priority_t get_priority() const _NOEXCEPT;
 private:
 	priority_t priority_;
 };
@@ -46,31 +46,15 @@ public:
 
 	task(task&&) = delete;
     
-	task(::std::shared_ptr<promise_type> ppromise, fn_type&& fn, args_type&& args) : 
-		ppromise_(ppromise), fn_(fn), args_(args) {}
+	task(::std::shared_ptr<promise_type>, fn_type&&, args_type&&) _NOEXCEPT;
 
-	~task() = default; // nothing
+	~task() _NOEXCEPT = default; // nothing
 
 	task& operator = (const task&) = delete;
 	
 	task& operator = (task&&) = delete;
 
-	void execute() override {
-		try {  
-            if (ppromise_) {
-				if constexpr(::std::is_same<ret_type, void>::value) { // nothing to set
-					::std::apply(fn_, args_);
-					ppromise_->set_value();
-				} else {
-					ppromise_->set_value(::std::apply(fn_, args_));  
-				}   
-            }  
-        } catch (...) {  
-            if (ppromise_) {  
-                ppromise_->set_exception(::std::current_exception());  
-            }  
-        }  
-	}
+	void execute() _NOEXCEPT override;
 private:
 	fn_type fn_;
 	args_type args_;

@@ -5,7 +5,9 @@
 _SW_BEGIN
 
 threadpool_settings::threadpool_settings() : 
-    worker_capacity(::std::thread::hardware_concurrency()), core_capacity(0), queue_capacity(100), keepalive_time(10000), queue(queue_type::QUEUE_TYPE_FIFO), handler(handler_type::HANDLER_TYPE_IGNORE) { 
+    worker_capacity(::std::thread::hardware_concurrency()), 
+        core_capacity(0), queue_capacity(100), keepalive_time(10000), 
+            queue(queue_type::QUEUE_TYPE_FIFO), handler(handler_type::HANDLER_TYPE_IGNORE) { 
 }
 
 threadpool::ptr threadpool::create(threadpool_settings ts) {
@@ -30,16 +32,17 @@ void threadpool::shutdown() {
 ::std::vector<threadpool::task_ptr> threadpool::shutdown_now() {
     state_ = _State::STOPPING;
     _Close();
-    ::std::vector<threadpool::task_ptr> _Remains;
+    ::std::vector<threadpool::task_ptr> remains;
     while (!pqueue_->empty()) {
-        auto _Task = pqueue_->pop();
-        _Remains.emplace_back(::std::move(_Task));
+        auto task = pqueue_->pop();
+        remains.emplace_back(::std::move(task));
     }
-    return _Remains;
+    return remains;
 }
 
 void threadpool::join() {
-    while (!pqueue_->empty());
+    ::std::unique_lock<::std::mutex> lock(mutex_);
+    cv_.wait(lock, [this](){ return !pqueue_->empty(); });
     return;
 }
 

@@ -10,10 +10,6 @@ log_event::log_event(const char *file, const char *func, ::std::uint32_t line, c
     time_ = ::std::localtime(&current_time);
 }
 
-::std::string log_level::to_string(log_level::level level) {
-    return _Level_to_string[static_cast<int>(level)];
-}
-
 const ::std::unordered_map<::std::string, log_level::level> log_level::_String_to_level = {
     {"DEBUG", level::DEBUG},
     {"INFO",  level::INFO},
@@ -21,6 +17,10 @@ const ::std::unordered_map<::std::string, log_level::level> log_level::_String_t
     {"ERROR", level::ERROR},
     {"FATAL", level::FATAL}
 };
+
+::std::string log_level::to_string(log_level::level level) {
+    return _Level_to_string[static_cast<int>(level)];
+}
 
 log_level::level log_level::from_string(const ::std::string &str) {
     return log_level::_String_to_level.find(str) == log_level::_String_to_level.end() ? log_level::level::NONE : log_level::_String_to_level.at(str);

@@ -16,7 +16,7 @@ void _Reject_handler_ignore_throw::reject(_Queue_base::task_ptr&&) {
 _Reject_handler_delete_oldest::_Reject_handler_delete_oldest(_Queue_base::ptr pqueue) :
     pqueue_(pqueue) {}
 
-void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) {
+void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) throw(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(pqueue_->mutex_);
     while (pqueue_->size() >= pqueue_->capacity_ - 1) pqueue_->pop();
     throw ::std::runtime_error("queue is full");
@@ -26,7 +26,7 @@ void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) {
 _Queue_base::_Queue_base(size_type capacity = 0) : 
     size_(0), capacity_(capacity) {}
 
-void _Queue_base::set_handler(_Reject_handler_base::uptr&& phandler) {
+void _Queue_base::set_handler(_Reject_handler_base::uptr&& phandler) noexcept {
     phandler_ = ::std::move(phandler);
 }
 
@@ -106,6 +106,10 @@ bool _Queue_priority::try_pop(_Queue_base::task_ptr& task) {
     // task.swap(_Top);
     queue_.pop();  
     return true; 
+}
+
+bool _Queue_priority::_Comparator::operator()(const task_ptr& lhs, const task_ptr& rhs) const {
+    return lhs->get_priority() < rhs->get_priority();
 }
 
 _SW_END // _SW_BEGIN

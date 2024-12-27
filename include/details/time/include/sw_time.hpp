@@ -16,37 +16,17 @@ template <typename _Ct,
     typename _Dr = ::std::chrono::milliseconds>
 class stopwatch {
 public:
-    stopwatch(bool auto_start = true) noexcept : 
-        accumulated_duration_(0), start_(), paused_(false) {
-        if (auto_start) 
-            start();
-    }
+    stopwatch(bool auto_start = true) _NOEXCEPT;
 
-    ~stopwatch() = default;
+    ~stopwatch() _NOEXCEPT = default;
 
-    inline void start() {
-        accumulated_duration_ = 0;
-        start_ = _Ct::now();
-        paused_ = false;
-    }
+    inline void start() _NOEXCEPT;
 
-    inline void pause() {
-        accumulated_duration_ += elapsed();
-        paused_ = true;
-    }
+    inline void pause() _NOEXCEPT;
 
-    inline void resume() {
-        start_ = _Ct::now();
-        paused_ = false;
-    }
+    inline void resume() _NOEXCEPT;
 
-    ::std::uint64_t elapsed() const {
-        if (paused_) {
-            return accumulated_duration_;
-        }
-        return accumulated_duration_ + ::std::chrono::duration_cast<_Dr>
-            (_Ct::now() - start_).count();
-    }
+    ::std::uint64_t elapsed() const _NOEXCEPT;
 private:
     ::std::uint64_t accumulated_duration_;
     typename _Ct::time_point start_;
@@ -61,13 +41,9 @@ public:
     using stopwatch_type = stopwatch<_Ct, _Dr>;
     using callback_type = _Cb;
 
-    explicit counter(const std::string &key, callback_type &&callback) :
-        key_(key), callback_(callback) {
-    }
+    explicit counter(const std::string &, callback_type &&) _NOEXCEPT;
 
-    ~counter() {
-        callback_(key_, stopwatch_.elapsed());
-    }
+    ~counter() _NOEXCEPT;
 private:
     stopwatch_type stopwatch_;
     callback_type callback_;
@@ -75,5 +51,7 @@ private:
 };
 
 _SW_END
+
+#include "./sw_time.ipp"
 
 #endif // _SW_TIME_H_
