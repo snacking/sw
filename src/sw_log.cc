@@ -257,7 +257,7 @@ void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level
     }
 }
 
-fstream_log_appender::fstream_log_appender(const ::std::string &fp) _SW_THROW(::std::runtime_error) : out_(fp) {
+fstream_log_appender::fstream_log_appender(const ::std::string &fp) _SW_DES(::std::runtime_error) : out_(fp) {
     if (!out_.is_open()) {
         _SW_THROW(::std::runtime_error("open file failed"));
     }
@@ -273,7 +273,7 @@ void fstream_log_appender::log(::std::shared_ptr<logger> logger, log_level::leve
     }
 }
 
-rolling_fstream_log_appender::rolling_fstream_log_appender(const ::std::string &fp) _SW_THROW(::std::runtime_error) : out_(fp) {
+rolling_fstream_log_appender::rolling_fstream_log_appender(const ::std::string &fp) _SW_DES(::std::runtime_error) : out_(fp) {
     if (!out_.is_open()) {
         _SW_THROW(::std::runtime_error("open file failed"));
     }
@@ -316,12 +316,12 @@ void logger::configure(const char *fp) {
     auto parser = _Properties_parser(fp);
 }
 
-void logger::configure(const std::string &fp) _SW_THROW(::std::runtime_error) {
+void logger::configure(const std::string &fp) _SW_DES(::std::runtime_error) {
     auto parser = _Properties_parser(fp);
 }
 
 #ifdef __cpp_lib_filesystem
-void logger::configure(const ::std::filesystem::path &fp) _SW_THROW(::std::runtime_error) {
+void logger::configure(const ::std::filesystem::path &fp) _SW_DES(::std::runtime_error) {
     auto parser = _Properties_parser(fp);
 }
 #endif // __cpp_lib_filesystem
@@ -414,18 +414,18 @@ bool logger::_Is_complete_logger() const _SW_NOEXCEPT {
     return true;
 }
 
-logger::_Properties_parser::_Properties_parser(const char *fp) _SW_THROW(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const char *fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }
 
-logger::_Properties_parser::_Properties_parser(const std::string &fp) _SW_THROW(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const std::string &fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }
 
 #ifdef __cpp_lib_filesystem
-logger::_Properties_parser::_Properties_parser(const ::std::filesystem::path &fp) _SW_THROW(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const ::std::filesystem::path &fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }

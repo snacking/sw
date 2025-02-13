@@ -248,7 +248,7 @@ private:
 
 class fstream_log_appender : public log_appender {
 public:
-    explicit fstream_log_appender(const ::std::string &) _SW_THROW(::std::runtime_error);
+    explicit fstream_log_appender(const ::std::string &) _SW_DES(::std::runtime_error);
     
     ~fstream_log_appender() _SW_NOEXCEPT;
 
@@ -262,7 +262,7 @@ class rolling_fstream_log_appender : public log_appender {
 public:
     using size_type = ::std::size_t;
 
-    explicit rolling_fstream_log_appender(const ::std::string &) _SW_THROW(::std::runtime_error);
+    explicit rolling_fstream_log_appender(const ::std::string &) _SW_DES(::std::runtime_error);
     
     ~rolling_fstream_log_appender() _SW_NOEXCEPT;
 
@@ -289,12 +289,12 @@ public:
 
     static void configure() _SW_NOEXCEPT;
 
-    static void configure(const char *) _SW_THROW(::std::runtime_error);
+    static void configure(const char *) _SW_DES(::std::runtime_error);
 
-    static void configure(const std::string &) _SW_THROW(::std::runtime_error);
+    static void configure(const std::string &) _SW_DES(::std::runtime_error);
 
 #ifdef __cpp_lib_filesystem
-    static void configure(const ::std::filesystem::path &) _SW_THROW(::std::runtime_error);
+    static void configure(const ::std::filesystem::path &) _SW_DES(::std::runtime_error);
 #endif // __cpp_lib_filesystem
 
     void log(log_level::level, log_event::ptr) _SW_NOEXCEPT;
@@ -323,12 +323,12 @@ public:
 private:
     class _Properties_parser {
     public:
-        _Properties_parser(const char *) _SW_THROW(::std::runtime_error);
+        _Properties_parser(const char *) _SW_DES(::std::runtime_error);
 
-        _Properties_parser(const std::string &) _SW_THROW(::std::runtime_error);
+        _Properties_parser(const std::string &) _SW_DES(::std::runtime_error);
 
 #ifdef __cpp_lib_filesystem
-        _Properties_parser(const ::std::filesystem::path &) _SW_THROW(::std::runtime_error);
+        _Properties_parser(const ::std::filesystem::path &) _SW_DES(::std::runtime_error);
 #endif // __cpp_lib_filesystem
 
         ~_Properties_parser() _SW_NOEXCEPT = default;
@@ -351,7 +351,7 @@ private:
         };
 
         template <typename _Pt>
-        void _Load_properties(_Pt) _SW_THROW(::std::runtime_error);
+        void _Load_properties(_Pt) _SW_DES(::std::runtime_error);
 
         void _Parse() _SW_NOEXCEPT;
 

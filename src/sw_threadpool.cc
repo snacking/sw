@@ -42,7 +42,7 @@ void threadpool::shutdown() _SW_NOEXCEPT {
 
 void threadpool::join() _SW_NOEXCEPT {
     ::std::unique_lock<::std::mutex> lock(mutex_);
-    cv_.wait(lock, [this](){ return !pqueue_->empty(); });
+    cv_.wait(lock, [this](){ return pqueue_->empty(); });
     return;
 }
 

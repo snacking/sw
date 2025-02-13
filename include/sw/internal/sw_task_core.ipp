@@ -12,6 +12,10 @@ inline ::std::uint8_t _Task_base::get_priority() const _SW_NOEXCEPT {
 }
 
 template <typename _Fn, typename ..._Args>
+task<_Fn, _Args...>::task(::std::shared_ptr<promise_type> ppromise, fn_type&& fn, args_type&& args) _SW_NOEXCEPT : 
+		ppromise_(ppromise), fn_(fn), args_(args) {}
+
+template <typename _Fn, typename ..._Args>
 void task<_Fn, _Args...>::execute() _SW_NOEXCEPT {
     _SW_TRY_BEGIN
         if (ppromise_) {

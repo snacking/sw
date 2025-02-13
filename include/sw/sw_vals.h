@@ -11,6 +11,8 @@
 
 #define _SW_VER 1
 
+#define _SW_HAS_EXCEPTIONS 1
+
 #if defined(_MSC_VER)
 	#undef max
 	#undef min
@@ -36,7 +38,12 @@
 	#define _SW_CATCH_END }
 
 	#define _SW_RERAISE throw
-	#define _SW_THROW(...) throw(__VA_ARGS__) // Dynamic exception specification after C++17 is deprecated. Will automatic replaced by noexcept(false).
+	#define _SW_THROW(...) throw(__VA_ARGS__)
+#if __cplusplus < 201703L
+	#define _SW_DES(...) throw(__VA_ARGS__)
+#else
+	#define _SW_DES(...) // Dynamic exception specification after C++17 is deprecated. Will automatic replaced by noexcept(false).
+#endif
 	#define _SW_NOEXCEPT noexcept
 	#define _SW_NOEXCEPT_OP(x) noexcept(x)
 #else

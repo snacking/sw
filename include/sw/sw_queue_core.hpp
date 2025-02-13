@@ -76,14 +76,14 @@ public:
 class _Reject_handler_ignore_throw : 
 	public _Reject_handler_base {
 public:
-	void reject(task_ptr&&) _SW_THROW(::std::runtime_error) override;
+	void reject(task_ptr&&) _SW_DES(::std::runtime_error) override;
 };
 
 class _Reject_handler_delete_oldest : 
 	public _Reject_handler_base {
 public:
 	_Reject_handler_delete_oldest(_Queue_base::ptr) _SW_NOEXCEPT;
-	void reject(task_ptr&&)  _SW_THROW(::std::runtime_error) override;
+	void reject(task_ptr&&)  _SW_DES(::std::runtime_error) override;
 private:
 	_Queue_base::ptr pqueue_;
 };
@@ -97,7 +97,7 @@ public:
 
 	bool push(task_ptr&&) _SW_NOEXCEPT override;
 
-	task_ptr pop() _SW_THROW(::std::runtime_error) override;
+	task_ptr pop() _SW_DES(::std::runtime_error) override;
 
 	bool try_pop(task_ptr&) _SW_NOEXCEPT override;
 private:
@@ -113,7 +113,7 @@ public:
 
 	bool push(task_ptr&& task) _SW_NOEXCEPT override;
 
-	task_ptr pop() _SW_THROW(::std::runtime_error) override;
+	task_ptr pop() _SW_DES(::std::runtime_error) override;
 
 	bool try_pop(task_ptr& task) _SW_NOEXCEPT override;
 private:

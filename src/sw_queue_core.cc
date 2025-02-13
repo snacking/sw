@@ -8,7 +8,7 @@ void _Reject_handler_ignore::reject(_Queue_base::task_ptr&&) _SW_NOEXCEPT {
     return;
 }
 
-void _Reject_handler_ignore_throw::reject(_Queue_base::task_ptr&&) _SW_THROW(::std::runtime_error) {
+void _Reject_handler_ignore_throw::reject(_Queue_base::task_ptr&&) _SW_DES(::std::runtime_error) {
     _SW_THROW(::std::runtime_error("queue is full"));
     return;
 }
@@ -16,7 +16,7 @@ void _Reject_handler_ignore_throw::reject(_Queue_base::task_ptr&&) _SW_THROW(::s
 _Reject_handler_delete_oldest::_Reject_handler_delete_oldest(_Queue_base::ptr pqueue) _SW_NOEXCEPT :
     pqueue_(pqueue) {}
 
-void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) _SW_THROW(::std::runtime_error) {
+void _Reject_handler_delete_oldest::reject(_Queue_base::task_ptr&&) _SW_DES(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(pqueue_->mutex_);
     while (pqueue_->size() >= pqueue_->capacity_ - 1) pqueue_->pop();
     _SW_THROW(::std::runtime_error("queue is full"));
@@ -45,7 +45,7 @@ bool _Queue::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
     return true;
 }
 
-_Queue_base::_Queue_base::task_ptr _Queue::pop() _SW_THROW(::std::runtime_error) {
+_Queue_base::_Queue_base::task_ptr _Queue::pop() _SW_DES(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
         _SW_THROW(::std::runtime_error("queue is empty"));
@@ -83,7 +83,7 @@ bool _Queue_priority::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
     return true;
 }
 
-_Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() _SW_THROW(::std::runtime_error) {
+_Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() _SW_DES(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
     if (empty()) {
         _SW_THROW(::std::runtime_error("queue is empty"));
