@@ -3,7 +3,7 @@
 #ifndef _SW_LOG_H_
 #define _SW_LOG_H_
 
-#include "sw_vals.h"
+#include "internal/sw_vals.h"
 
 #include "sw_properties.hpp"
 #include "sw_time.hpp"

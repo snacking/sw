@@ -3,7 +3,7 @@
 #ifndef _SW_QUEUE_CORE_H_
 #define _SW_QUEUE_CORE_H_
 
-#include "sw_vals.h"
+#include "internal/sw_vals.h"
 
 #include "sw_task_core.hpp"
 

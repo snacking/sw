@@ -3,7 +3,7 @@
 #ifndef _SW_THREADPOOL_H_
 #define _SW_THREADPOOL_H_
 
-#include "sw_vals.h"
+#include "internal/sw_vals.h"
 
 #include "sw_queue_core.hpp"
 #include "sw_task_core.hpp"

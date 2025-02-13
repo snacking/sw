@@ -3,7 +3,7 @@
 #ifndef _SW_PROPERTIES_H_
 #define _SW_PROPERTIES_H_
 
-#include "sw_vals.h"
+#include "internal/sw_vals.h"
 
 #include <cstdint>
 #include <iostream>
