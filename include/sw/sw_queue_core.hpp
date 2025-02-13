@@ -62,7 +62,7 @@ public:
 
 	void set_handler(handler_ptr&&) _SW_NOEXCEPT;
 protected:
-	::std::mutex mutex_;
+	mutable ::std::mutex mutex_;
 	volatile size_type size_, capacity_;
 	handler_ptr phandler_;
 };

@@ -22,7 +22,6 @@
 #include <tuple>
 #include <vector>
 
-
 _SW_BEGIN
 
 struct threadpool_settings {

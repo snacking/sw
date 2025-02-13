@@ -34,7 +34,7 @@ _Queue::_Queue(size_type capacity = 0) _SW_NOEXCEPT : _Queue_base(capacity) {}
 
 bool _Queue::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
-    if (size() >= capacity_) {
+    if (size_ >= capacity_) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
         }
@@ -47,7 +47,7 @@ bool _Queue::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
 
 _Queue_base::_Queue_base::task_ptr _Queue::pop() _SW_DES(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
-    if (empty()) {
+    if (0 == size_) {
         _SW_THROW(::std::runtime_error("queue is empty"));
     }
     --size_;
@@ -58,7 +58,7 @@ _Queue_base::_Queue_base::task_ptr _Queue::pop() _SW_DES(::std::runtime_error) {
 
 bool _Queue::try_pop(_Queue_base::task_ptr& task) _SW_NOEXCEPT {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);  
-    if (queue_.empty()) {  
+    if (0 == size_) {  
         return false;  
     }  
     --size_;
@@ -72,7 +72,7 @@ _Queue_priority::_Queue_priority(size_type capacity = 0) _SW_NOEXCEPT :
 
 bool _Queue_priority::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
-    if (size() >= capacity_) {
+    if (size_ >= capacity_) {
         if (phandler_) {
             phandler_->reject(::std::move(task));
         }
@@ -85,7 +85,7 @@ bool _Queue_priority::push(_Queue_base::task_ptr&& task) _SW_NOEXCEPT {
 
 _Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() _SW_DES(::std::runtime_error) {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);
-    if (empty()) {
+    if (0 == size_) {
         _SW_THROW(::std::runtime_error("queue is empty"));
     }
     --size_;
@@ -98,7 +98,7 @@ _Queue_priority::_Queue_base::task_ptr _Queue_priority::pop() _SW_DES(::std::run
 
 bool _Queue_priority::try_pop(_Queue_base::task_ptr& task) _SW_NOEXCEPT {
     ::std::lock_guard<::std::mutex> _Lock(mutex_);  
-    if (queue_.empty()) {  
+    if (0 == size_) {  
         return false;  
     }
     --size_;
