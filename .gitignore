@@ -1,0 +1,10 @@
+*.out
+*.obj
+*.exe
+**/test/**
+**/lib/**
+**/build/**
+**/bin/**
+**/tmp/**
+**/temp/**
+**/.vscode/**
