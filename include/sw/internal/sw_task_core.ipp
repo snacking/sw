@@ -13,7 +13,7 @@ inline ::std::uint8_t _Task_base::get_priority() const _SW_NOEXCEPT {
 
 template <typename _Fn, typename ..._Args>
 void task<_Fn, _Args...>::execute() _SW_NOEXCEPT {
-    _TRY_BEGIN
+    _SW_TRY_BEGIN
         if (ppromise_) {
             if constexpr(::std::is_same<ret_type, void>::value) { // nothing to set
                 ::std::apply(fn_, args_);
@@ -22,11 +22,11 @@ void task<_Fn, _Args...>::execute() _SW_NOEXCEPT {
                 ppromise_->set_value(::std::apply(fn_, args_));  
             }   
         }  
-    _CATCH_ALL  
+    _SW_CATCH_ALL  
         if (ppromise_) {  
             ppromise_->set_exception(::std::current_exception());  
         }  
-    _CATCH_END
+    _SW_CATCH_END
 }
 
 _SW_END // _SW_BEGIN
