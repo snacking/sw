@@ -16,7 +16,7 @@ _SW_BEGIN
     return level_to_string[static_cast<int>(level)];
 }
 
-log_level::level log_level::from_string(const ::std::string &str) _SW_NOEXCEPT {
+log_level::level log_level::from_string(const ::std::string& str) _SW_NOEXCEPT {
     static ::std::unordered_map<std::string, log_level::level> string_to_level = {
         {"DEBUG", level::DEBUG},
         {"INFO",  level::INFO},
@@ -27,13 +27,13 @@ log_level::level log_level::from_string(const ::std::string &str) _SW_NOEXCEPT {
     return string_to_level.find(str) == string_to_level.end() ? log_level::level::NONE : string_to_level.at(str);
 }
 
-log_event::log_event(const char *file, const char *func, ::std::uint32_t line, const std::string &content) _SW_NOEXCEPT :
+log_event::log_event(const char* file, const char* func, ::std::uint32_t line, const std::string& content) _SW_NOEXCEPT :
     file_(file), func_(func), line_(line), thread_id_(::std::this_thread::get_id()), content_(content) {
     ::std::time_t current_time = ::std::time(nullptr);
     time_ = ::std::localtime(&current_time);
 }
 
-const char *log_event::get_file() const _SW_NOEXCEPT {
+const char* log_event::get_file() const _SW_NOEXCEPT {
     return file_;
 }
 
@@ -53,7 +53,7 @@ const char *log_event::get_file() const _SW_NOEXCEPT {
     return coroutine_id_;
 }
 
-::std::tm *log_event::get_time() const _SW_NOEXCEPT {
+::std::tm* log_event::get_time() const _SW_NOEXCEPT {
     return time_;
 }
 
@@ -61,14 +61,14 @@ const char *log_event::get_file() const _SW_NOEXCEPT {
     return content_;
 }
 
-pattern_log_formatter::pattern_log_formatter(const ::std::string &pattern) _SW_NOEXCEPT :
+pattern_log_formatter::pattern_log_formatter(const ::std::string& pattern) _SW_NOEXCEPT :
     pattern_(pattern) {
     _Parse_pattern();
 }
 
 ::std::string pattern_log_formatter::format(logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     ::std::stringstream ss;
-    for (auto &p : items_) {
+    for (auto& p : items_) {
         p->format(ss, logger, level, event);
     }
     return ss.str();
@@ -76,70 +76,70 @@ pattern_log_formatter::pattern_log_formatter(const ::std::string &pattern) _SW_N
 
 pattern_log_formatter::_Formatter_item::_Formatter_item(const ::std::string& format) _SW_NOEXCEPT : format_(format) {}
 
-pattern_log_formatter::_Message_fotmatter_item::_Message_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Message_fotmatter_item::_Message_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Message_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_content();
 }
 
-pattern_log_formatter::_Level_fotmatter_item::_Level_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Level_fotmatter_item::_Level_fotmatter_item(const std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Level_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << log_level::to_string(level);
 }
 
-pattern_log_formatter::_Elapsed_fotmatter_item::_Elapsed_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Elapsed_fotmatter_item::_Elapsed_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Elapsed_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_elapsed();
 }
 
-pattern_log_formatter::_Loggername_fotmatter_item::_Loggername_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Loggername_fotmatter_item::_Loggername_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Loggername_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << logger->get_name();
 }
 
-pattern_log_formatter::_Threadid_fotmatter_item::_Threadid_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Threadid_fotmatter_item::_Threadid_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Threadid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_thread_id();
 }
 
-pattern_log_formatter::_Coroutineid_fotmatter_item::_Coroutineid_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Coroutineid_fotmatter_item::_Coroutineid_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Coroutineid_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_coroutine_id();
 }
 
-pattern_log_formatter::_Datetime_fotmatter_item::_Datetime_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Datetime_fotmatter_item::_Datetime_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Datetime_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << ::std::put_time(event->get_time(), format_.c_str());
 }
 
-pattern_log_formatter::_Filename_fotmatter_item::_Filename_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Filename_fotmatter_item::_Filename_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Filename_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_file();
 }
 
-pattern_log_formatter::_Line_fotmatter_item::_Line_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Line_fotmatter_item::_Line_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Line_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     os << event->get_line();
 }
 
-pattern_log_formatter::_Newline_fotmatter_item::_Newline_fotmatter_item(const std::string &format) _SW_NOEXCEPT : _Formatter_item(format) {
+pattern_log_formatter::_Newline_fotmatter_item::_Newline_fotmatter_item(const ::std::string& format) _SW_NOEXCEPT : _Formatter_item(format) {
 }
 
 void pattern_log_formatter::_Newline_fotmatter_item::format(::std::ostream& os, logger::ptr logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
@@ -255,7 +255,7 @@ log_level::level log_appender::get_level() const _SW_NOEXCEPT {
     return level_;
 }
 
-stream_log_appender::stream_log_appender(::std::ostream &out) _SW_NOEXCEPT : out_(out) {
+stream_log_appender::stream_log_appender(::std::ostream& out) _SW_NOEXCEPT : out_(out) {
 }
 
 void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
@@ -264,7 +264,7 @@ void stream_log_appender::log(::std::shared_ptr<logger> logger, log_level::level
     }
 }
 
-fstream_log_appender::fstream_log_appender(const ::std::string &fp) _SW_DES(::std::runtime_error) : out_(fp) {
+fstream_log_appender::fstream_log_appender(const ::std::string& fp) _SW_DES(::std::runtime_error) : out_(fp) {
     if (!out_.is_open()) {
         _SW_THROW(::std::runtime_error("open file failed"));
     }
@@ -280,7 +280,7 @@ void fstream_log_appender::log(::std::shared_ptr<logger> logger, log_level::leve
     }
 }
 
-rolling_fstream_log_appender::rolling_fstream_log_appender(const ::std::string &fp) _SW_DES(::std::runtime_error) : out_(fp) {
+rolling_fstream_log_appender::rolling_fstream_log_appender(const ::std::string& fp) _SW_DES(::std::runtime_error) : out_(fp) {
     if (!out_.is_open()) {
         _SW_THROW(::std::runtime_error("open file failed"));
     }
@@ -308,7 +308,7 @@ logger::ptr logger::get_logger(const std::string &logger_name) _SW_NOEXCEPT {
         configured = true;
     }
     if (_Get_internal_loggers_map().find(logger_name) == _Get_internal_loggers_map().end()) {
-        logger *plogger = new logger(*get_root_logger().get());
+        logger* plogger = new logger(*get_root_logger().get());
         plogger->set_name(logger_name);
         _Get_internal_loggers_map()[logger_name] = logger::ptr(plogger);
     }
@@ -319,23 +319,23 @@ void logger::configure() _SW_NOEXCEPT {
     auto parser = _Properties_parser(DEFAULT_CONFIG_FILE);
 }
 
-void logger::configure(const char *fp) {
+void logger::configure(const char* fp) {
     auto parser = _Properties_parser(fp);
 }
 
-void logger::configure(const std::string &fp) _SW_DES(::std::runtime_error) {
+void logger::configure(const ::std::string& fp) _SW_DES(::std::runtime_error) {
     auto parser = _Properties_parser(fp);
 }
 
 #ifdef __cpp_lib_filesystem
-void logger::configure(const ::std::filesystem::path &fp) _SW_DES(::std::runtime_error) {
+void logger::configure(const ::std::filesystem::path& fp) _SW_DES(::std::runtime_error) {
     auto parser = _Properties_parser(fp);
 }
 #endif // __cpp_lib_filesystem
 
 void logger::log(log_level::level level, log_event::ptr event) _SW_NOEXCEPT {
     if (level >= level_) {
-        for (auto &pappender : pappenders_) {
+        for (auto& pappender : pappenders_) {
             pappender.second->log(shared_from_this(), level, event);
         }
     }
@@ -361,11 +361,11 @@ void logger::fatal(log_event::ptr event) _SW_NOEXCEPT {
     log(log_level::level::FATAL, event);
 }
 
-void logger::add_appender(const ::std::string &appender_name, log_appender::ptr pappender) _SW_NOEXCEPT {
+void logger::add_appender(const ::std::string& appender_name, log_appender::ptr pappender) _SW_NOEXCEPT {
     pappenders_[appender_name] = pappender;
 }
 
-void logger::delete_appender(const ::std::string &appender_name) _SW_NOEXCEPT {
+void logger::delete_appender(const ::std::string& appender_name) _SW_NOEXCEPT {
     for (auto it = pappenders_.begin(); it != pappenders_.end(); ++it) {
         if (it->first == appender_name) {
             pappenders_.erase(it);
@@ -374,7 +374,7 @@ void logger::delete_appender(const ::std::string &appender_name) _SW_NOEXCEPT {
     }
 }
 
-void logger::set_name(const ::std::string &name) _SW_NOEXCEPT {
+void logger::set_name(const ::std::string& name) _SW_NOEXCEPT {
     name_ = name;
 }
 
@@ -400,10 +400,10 @@ void logger::_Init_root_logger() _SW_NOEXCEPT {
 }
 
 
-logger::logger(const std::string &name) _SW_NOEXCEPT : name_(name), level_(log_level::level::INFO) {
+logger::logger(const std::string& name) _SW_NOEXCEPT : name_(name), level_(log_level::level::INFO) {
 }
 
-logger::logger(const logger &other) _SW_NOEXCEPT : name_(other.name_), level_(other.level_), pappenders_(other.pappenders_) {
+logger::logger(const logger& other) _SW_NOEXCEPT : name_(other.name_), level_(other.level_), pappenders_(other.pappenders_) {
 }
 
 bool logger::_Is_complete_logger() const _SW_NOEXCEPT {
@@ -421,18 +421,18 @@ bool logger::_Is_complete_logger() const _SW_NOEXCEPT {
     return true;
 }
 
-logger::_Properties_parser::_Properties_parser(const char *fp) _SW_DES(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const char* fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }
 
-logger::_Properties_parser::_Properties_parser(const std::string &fp) _SW_DES(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const std::string& fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }
 
 #ifdef __cpp_lib_filesystem
-logger::_Properties_parser::_Properties_parser(const ::std::filesystem::path &fp) _SW_DES(::std::runtime_error) {
+logger::_Properties_parser::_Properties_parser(const ::std::filesystem::path& fp) _SW_DES(::std::runtime_error) {
     _Load_properties(fp);
     _Parse();
 }
@@ -442,11 +442,11 @@ void logger::_Properties_parser::_Parse() _SW_NOEXCEPT {
     ::std::unordered_map<::std::string, appender_meta> appender_meta_cache;
     for (auto it = properties_.begin(); it != properties_.end(); ++it) {
         auto key_parse_state = state::INIT;
-        auto &[key, value] = *it;
+        auto& [key, value] = *it;
         auto key_elements = split(key, '.');
         auto key_elements_size = key_elements.size();
         ::std::string current_logger_name, current_log_appender_name;
-        for (auto & key_element : key_elements) {
+        for (auto& key_element : key_elements) {
             key_element = trim(key_element);
             switch (key_parse_state) {
             case state::INIT:
@@ -482,7 +482,7 @@ void logger::_Properties_parser::_Parse() _SW_NOEXCEPT {
     }
 }
 
-logger::_Properties_parser::state logger::_Properties_parser::_Parse_init(const ::std::string &element, ::std::string &current_logger_name) _SW_NOEXCEPT {
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_init(const ::std::string& element, ::std::string& current_logger_name) _SW_NOEXCEPT {
     if (element != "sw_log") {
         return state::FAILED;
     }
@@ -490,9 +490,9 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_init(const 
     return state::SW_LOG;
 }
 
-logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(const ::std::string &element, 
-    ::std::size_t size, ::std::string &current_logger_name, ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, 
-        const ::std::string &value) _SW_NOEXCEPT {
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(const ::std::string& element, 
+    ::std::size_t size, ::std::string& current_logger_name, ::std::unordered_map<::std::string, appender_meta>& appender_meta_cache, 
+        const ::std::string& value) _SW_NOEXCEPT {
     current_logger_name = element;
     ::std::string meta_key;
     switch (size) {
@@ -501,7 +501,7 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(cons
         return state::FAILED;
     case 2:
         _Get_internal_loggers_map()[current_logger_name] = logger::ptr(new logger(current_logger_name));
-        for (auto &current_appender_name : split(value, ',')) {
+        for (auto& current_appender_name : split(value, ',')) {
             current_appender_name = trim(current_appender_name);
             if (current_appender_name == "NONE") {
                 return state::FAILED;
@@ -521,9 +521,9 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(cons
     return state::FAILED;
 }
 
-logger::_Properties_parser::state logger::_Properties_parser::_Parse_logger(const ::std::string &element, 
-    ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, 
-        ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) _SW_NOEXCEPT {
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_logger(const ::std::string& element, 
+    ::std::size_t size, const ::std::string &current_logger_name, ::std::string& current_log_appender_name, 
+        ::std::unordered_map<::std::string, appender_meta>& appender_meta_cache, const ::std::string& value) _SW_NOEXCEPT {
     static const ::std::unordered_map<::std::string, appender_type> appender_types = {
         { "sw_log.stream_appender", appender_type::STREAM_APPENDER },
         { "sw_log.file_appender", appender_type::FSTREAM_APPENDER },
@@ -547,10 +547,10 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_logger(cons
     return state::FAILED;
 }
 
-logger::_Properties_parser::state logger::_Properties_parser::_Parse_appender(const ::std::string &element, 
-    ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, 
-        ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) _SW_NOEXCEPT {
-    static const ::std::unordered_map<::std::string, ::std::ostream &> stream_types = {
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_appender(const ::std::string& element, 
+    ::std::size_t size, const ::std::string& current_logger_name, ::std::string& current_log_appender_name, 
+        ::std::unordered_map<::std::string, appender_meta>& appender_meta_cache, const ::std::string& value) _SW_NOEXCEPT {
+    static const ::std::unordered_map<::std::string, ::std::ostream&> stream_types = {
         { "stdout", ::std::cout },
         { "stderr", ::std::cerr },
         { "stdlog", ::std::clog }
@@ -600,9 +600,9 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_appender(co
     return state::FAILED;
 }
 
-logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(const ::std::string &element, 
-    ::std::size_t size, const ::std::string &current_logger_name, ::std::string &current_log_appender_name, 
-        ::std::unordered_map<::std::string, appender_meta> &appender_meta_cache, const ::std::string &value) _SW_NOEXCEPT {
+logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(const ::std::string& element, 
+    ::std::size_t size, const ::std::string& current_logger_name, ::std::string& current_log_appender_name, 
+        ::std::unordered_map<::std::string, appender_meta>& appender_meta_cache, const ::std::string& value) _SW_NOEXCEPT {
     auto meta_key = current_logger_name + " " + current_log_appender_name;
     switch (size) {
     case 0:
@@ -624,7 +624,7 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(c
     return state::FAILED;
 }
 
-::std::unordered_map<::std::string, logger::ptr> &logger::_Get_internal_loggers_map() _SW_NOEXCEPT {
+::std::unordered_map<::std::string, logger::ptr>& logger::_Get_internal_loggers_map() _SW_NOEXCEPT {
     static ::std::unordered_map<::std::string, logger::ptr> sploggers;
     return sploggers;
 }

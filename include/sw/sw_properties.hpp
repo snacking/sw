@@ -29,25 +29,25 @@ public:
 
     ~properties() _SW_NOEXCEPT = default;
 
-    void load(::std::istream &);
+    void load(::std::istream&);
 
-    void store(::std::ostream &) const;
+    void store(::std::ostream&) const;
 
     inline size_type size() const _SW_NOEXCEPT;
 
     inline bool empty() const _SW_NOEXCEPT;
 
-    inline const ::std::string get_property(const ::std::string &) const;
+    inline const ::std::string get_property(const ::std::string&) const;
 
-    inline const ::std::string get_property(const ::std::string &, const ::std::string &) const _SW_NOEXCEPT;
+    inline const ::std::string get_property(const ::std::string&, const ::std::string&) const _SW_NOEXCEPT;
 
-    inline void set_property(const ::std::string &, const ::std::string &) _SW_NOEXCEPT;
+    inline void set_property(const ::std::string&, const ::std::string&) _SW_NOEXCEPT;
 
-    ::std::string delete_property(const ::std::string &) _SW_NOEXCEPT;
+    ::std::string delete_property(const ::std::string&) _SW_NOEXCEPT;
 
-    inline ::std::string &operator [](const ::std::string &) _SW_NOEXCEPT;
+    inline ::std::string& operator [](const ::std::string&) _SW_NOEXCEPT;
 
-    inline bool contains_key(const ::std::string &) const _SW_NOEXCEPT;
+    inline bool contains_key(const ::std::string&) const _SW_NOEXCEPT;
 
     inline void clear() _SW_NOEXCEPT;
 
@@ -63,9 +63,9 @@ private:
     value_type value_;
 };
 
-::std::vector<::std::string> split(const ::std::string &, char) _SW_NOEXCEPT;
+::std::vector<::std::string> split(const ::std::string&, char) _SW_NOEXCEPT;
 
-::std::string trim(const ::std::string &) _SW_NOEXCEPT;
+::std::string trim(const ::std::string&) _SW_NOEXCEPT;
 
 _SW_END // _SW_BEGIN
 

@@ -58,14 +58,14 @@ class log_event {
 public:
     using ptr = ::std::shared_ptr<log_event>;
 
-    log_event(const char *, const char *, ::std::uint32_t, const std::string &) _SW_NOEXCEPT;
+    log_event(const char*, const char*, ::std::uint32_t, const std::string&) _SW_NOEXCEPT;
 
 #define EVENT(content) \
     ::std::make_shared<sw::log_event>(__FILE__, __FUNC_NAME__, __LINE__, content)
 
-    const char *get_file() const _SW_NOEXCEPT;
+    const char* get_file() const _SW_NOEXCEPT;
 
-    const char *get_func() const _SW_NOEXCEPT;
+    const char* get_func() const _SW_NOEXCEPT;
 
     ::std::uint64_t get_elapsed() const _SW_NOEXCEPT;
 
@@ -75,16 +75,16 @@ public:
     
     ::std::string get_coroutine_id() const _SW_NOEXCEPT;
 
-    ::std::tm *get_time() const _SW_NOEXCEPT;
+    ::std::tm* get_time() const _SW_NOEXCEPT;
 
     ::std::string get_content() const _SW_NOEXCEPT;
 private:
-    const char *file_, *func_;
+    const char* file_, *func_;
     stopwatch<::std::chrono::steady_clock> sw_;
     ::std::uint32_t line_;
     ::std::thread::id thread_id_;
     ::std::string coroutine_id_;
-    ::std::tm *time_;
+    ::std::tm* time_;
     ::std::string content_;
 };
 
@@ -226,18 +226,18 @@ protected:
 
 class stream_log_appender : public log_appender {
 public:
-    explicit stream_log_appender(::std::ostream &) _SW_NOEXCEPT;
+    explicit stream_log_appender(::std::ostream&) _SW_NOEXCEPT;
     
     ~stream_log_appender() _SW_NOEXCEPT = default;
 
     void log(::std::shared_ptr<logger>, log_level::level, log_event::ptr) _SW_NOEXCEPT override;
 private:
-    ::std::ostream &out_;
+    ::std::ostream& out_;
 };
 
 class fstream_log_appender : public log_appender {
 public:
-    explicit fstream_log_appender(const ::std::string &) _SW_DES(::std::runtime_error);
+    explicit fstream_log_appender(const ::std::string&) _SW_DES(::std::runtime_error);
     
     ~fstream_log_appender() _SW_NOEXCEPT;
 
@@ -251,7 +251,7 @@ class rolling_fstream_log_appender : public log_appender {
 public:
     using size_type = ::std::size_t;
 
-    explicit rolling_fstream_log_appender(const ::std::string &) _SW_DES(::std::runtime_error);
+    explicit rolling_fstream_log_appender(const ::std::string&) _SW_DES(::std::runtime_error);
     
     ~rolling_fstream_log_appender() _SW_NOEXCEPT;
 
@@ -274,16 +274,16 @@ public:
 
     static ptr get_root_logger() _SW_NOEXCEPT;
 
-    static ptr get_logger(const std::string &) _SW_NOEXCEPT;
+    static ptr get_logger(const std::string&) _SW_NOEXCEPT;
 
     static void configure() _SW_NOEXCEPT;
 
-    static void configure(const char *) _SW_DES(::std::runtime_error);
+    static void configure(const char*) _SW_DES(::std::runtime_error);
 
-    static void configure(const std::string &) _SW_DES(::std::runtime_error);
+    static void configure(const std::string&) _SW_DES(::std::runtime_error);
 
 #ifdef __cpp_lib_filesystem
-    static void configure(const ::std::filesystem::path &) _SW_DES(::std::runtime_error);
+    static void configure(const ::std::filesystem::path&) _SW_DES(::std::runtime_error);
 #endif // __cpp_lib_filesystem
 
     void log(log_level::level, log_event::ptr) _SW_NOEXCEPT;
@@ -298,11 +298,11 @@ public:
 
     void fatal(log_event::ptr) _SW_NOEXCEPT;
 
-    void add_appender(const ::std::string &, log_appender::ptr) _SW_NOEXCEPT;
+    void add_appender(const ::std::string&, log_appender::ptr) _SW_NOEXCEPT;
 
-    void delete_appender(const ::std::string &) _SW_NOEXCEPT;
+    void delete_appender(const ::std::string&) _SW_NOEXCEPT;
 
-    void set_name(const ::std::string &) _SW_NOEXCEPT;
+    void set_name(const ::std::string&) _SW_NOEXCEPT;
 
     void set_level(log_level::level) _SW_NOEXCEPT;
 
@@ -312,12 +312,12 @@ public:
 private:
     class _Properties_parser {
     public:
-        _Properties_parser(const char *) _SW_DES(::std::runtime_error);
+        _Properties_parser(const char*) _SW_DES(::std::runtime_error);
 
-        _Properties_parser(const std::string &) _SW_DES(::std::runtime_error);
+        _Properties_parser(const std::string&) _SW_DES(::std::runtime_error);
 
 #ifdef __cpp_lib_filesystem
-        _Properties_parser(const ::std::filesystem::path &) _SW_DES(::std::runtime_error);
+        _Properties_parser(const ::std::filesystem::path&) _SW_DES(::std::runtime_error);
 #endif // __cpp_lib_filesystem
 
         ~_Properties_parser() _SW_NOEXCEPT = default;
@@ -344,28 +344,28 @@ private:
 
         void _Parse() _SW_NOEXCEPT;
 
-        state _Parse_init(const ::std::string &, ::std::string &) _SW_NOEXCEPT;
+        state _Parse_init(const ::std::string&, ::std::string&) _SW_NOEXCEPT;
 
-        state _Parse_sw_log(const ::std::string &, ::std::size_t, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &, const ::std::string &) _SW_NOEXCEPT;
+        state _Parse_sw_log(const ::std::string&, ::std::size_t, ::std::string&, ::std::unordered_map<::std::string, appender_meta> &, const ::std::string&) _SW_NOEXCEPT;
 
-        state _Parse_logger(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _SW_NOEXCEPT;
+        state _Parse_logger(const ::std::string&, ::std::size_t, const ::std::string&, ::std::string&, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string&) _SW_NOEXCEPT;
 
-        state _Parse_appender(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _SW_NOEXCEPT;
+        state _Parse_appender(const ::std::string&, ::std::size_t, const ::std::string&, ::std::string&, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string&) _SW_NOEXCEPT;
 
-        state _Parse_formatter(const ::std::string &, ::std::size_t, const ::std::string &, ::std::string &, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string &) _SW_NOEXCEPT;
+        state _Parse_formatter(const ::std::string&, ::std::size_t, const ::std::string&, ::std::string&, ::std::unordered_map<::std::string, appender_meta> &,const ::std::string&) _SW_NOEXCEPT;
 
         properties properties_;
     };
 
     static void _Init_root_logger() _SW_NOEXCEPT;
 
-    explicit logger(const std::string &) _SW_NOEXCEPT;
+    explicit logger(const ::std::string&) _SW_NOEXCEPT;
 
-    logger(const logger &) _SW_NOEXCEPT;
+    logger(const logger&) _SW_NOEXCEPT;
 
     bool _Is_complete_logger() const _SW_NOEXCEPT;
 
-    static ::std::unordered_map<::std::string, ptr> &_Get_internal_loggers_map() _SW_NOEXCEPT;
+    static ::std::unordered_map<::std::string, ptr>& _Get_internal_loggers_map() _SW_NOEXCEPT;
 
     ::std::string name_;
     log_level::level level_;

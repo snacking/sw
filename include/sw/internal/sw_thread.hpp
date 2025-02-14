@@ -50,7 +50,7 @@ protected:
 	_State state_;
 
 #ifdef _SW_DEBUG_
-	constexpr static const char *state_str[] = {
+	constexpr static const char* state_str[] = {
 		"IDLE",
 		"RUNNING",
 		"SLEEPING",
@@ -58,7 +58,7 @@ protected:
 		"STOPPED"
 	};
 
-	const char *to_state_str(enum _State s) const {
+	const char* to_state_str(enum _State s) const {
 		return state_str[static_cast<::std::uint8_t>(s)];
 	}
 #endif // _SW_DEBUG_
