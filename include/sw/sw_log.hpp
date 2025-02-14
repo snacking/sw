@@ -49,17 +49,6 @@ struct log_level {
         NONE
     };
 
-    static constexpr ::std::array<const char*, 6> _Level_to_string = {
-        "DEBUG",
-        "INFO",
-        "WARN",
-        "ERROR",
-        "FATAL",
-        "NONE"
-    };
-
-    static const ::std::unordered_map<::std::string, level> _String_to_level;
-
     static ::std::string to_string(log_level::level) _SW_NOEXCEPT;
 
     static level from_string(const ::std::string&) _SW_NOEXCEPT;
@@ -376,7 +365,7 @@ private:
 
     bool _Is_complete_logger() const _SW_NOEXCEPT;
 
-    static ::std::unordered_map<::std::string, ptr> sploggers_;
+    static ::std::unordered_map<::std::string, ptr> &_Get_internal_loggers_map() _SW_NOEXCEPT;
 
     ::std::string name_;
     log_level::level level_;

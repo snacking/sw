@@ -4,20 +4,27 @@
 
 _SW_BEGIN
 
-const ::std::unordered_map<::std::string, log_level::level> log_level::_String_to_level = {
-    {"DEBUG", level::DEBUG},
-    {"INFO",  level::INFO},
-    {"WARN",  level::WARN},
-    {"ERROR", level::ERROR},
-    {"FATAL", level::FATAL}
-};
-
 ::std::string log_level::to_string(log_level::level level) _SW_NOEXCEPT {
-    return _Level_to_string[static_cast<int>(level)];
+    static constexpr ::std::array<const char*, 6> level_to_string = {
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR",
+        "FATAL",
+        "NONE"
+    };
+    return level_to_string[static_cast<int>(level)];
 }
 
 log_level::level log_level::from_string(const ::std::string &str) _SW_NOEXCEPT {
-    return log_level::_String_to_level.find(str) == log_level::_String_to_level.end() ? log_level::level::NONE : log_level::_String_to_level.at(str);
+    static ::std::unordered_map<std::string, log_level::level> string_to_level = {
+        {"DEBUG", level::DEBUG},
+        {"INFO",  level::INFO},
+        {"WARN",  level::WARN},
+        {"ERROR", level::ERROR},
+        {"FATAL", level::FATAL}
+    };
+    return string_to_level.find(str) == string_to_level.end() ? log_level::level::NONE : string_to_level.at(str);
 }
 
 log_event::log_event(const char *file, const char *func, ::std::uint32_t line, const std::string &content) _SW_NOEXCEPT :
@@ -300,12 +307,12 @@ logger::ptr logger::get_logger(const std::string &logger_name) _SW_NOEXCEPT {
         logger::configure();
         configured = true;
     }
-    if (logger::sploggers_.find(logger_name) == logger::sploggers_.end()) {
+    if (_Get_internal_loggers_map().find(logger_name) == _Get_internal_loggers_map().end()) {
         logger *plogger = new logger(*get_root_logger().get());
         plogger->set_name(logger_name);
-        logger::sploggers_[logger_name] = logger::ptr(plogger);
+        _Get_internal_loggers_map()[logger_name] = logger::ptr(plogger);
     }
-    return logger::sploggers_[logger_name];
+    return _Get_internal_loggers_map()[logger_name];
 }
 
 void logger::configure() _SW_NOEXCEPT {
@@ -389,7 +396,7 @@ void logger::_Init_root_logger() _SW_NOEXCEPT {
     auto root_logger_log_formatter = ::std::make_shared<pattern_log_formatter>("[%d{%Y-%m-%d %H:%M:%S}] [%p] [%t] %m %n");
     root_logger_log_appender->set_formatter(root_logger_log_formatter);
     root_logger->add_appender("stdout", root_logger_log_appender);
-    sploggers_["root"] = root_logger;
+    _Get_internal_loggers_map()["root"] = root_logger;
 }
 
 
@@ -466,9 +473,9 @@ void logger::_Properties_parser::_Parse() _SW_NOEXCEPT {
             }
         }
     }
-    for (auto it = logger::sploggers_.begin(); it != logger::sploggers_.end();) {
+    for (auto it = _Get_internal_loggers_map().begin(); it != _Get_internal_loggers_map().end();) {
         if (!it->second->_Is_complete_logger()) {
-            it = logger::sploggers_.erase(it);
+            it = _Get_internal_loggers_map().erase(it);
         } else {
             ++it;
         }
@@ -493,22 +500,22 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_sw_log(cons
     case 1:
         return state::FAILED;
     case 2:
-        logger::sploggers_[current_logger_name] = logger::ptr(new logger(current_logger_name));
+        _Get_internal_loggers_map()[current_logger_name] = logger::ptr(new logger(current_logger_name));
         for (auto &current_appender_name : split(value, ',')) {
             current_appender_name = trim(current_appender_name);
             if (current_appender_name == "NONE") {
                 return state::FAILED;
             } else if (log_level::from_string(current_appender_name) != log_level::level::NONE) {
-                logger::sploggers_[current_logger_name]->set_level(log_level::from_string(current_appender_name));
+                _Get_internal_loggers_map()[current_logger_name]->set_level(log_level::from_string(current_appender_name));
             } else {
-                logger::sploggers_[current_logger_name]->add_appender(current_appender_name, nullptr);
+                _Get_internal_loggers_map()[current_logger_name]->add_appender(current_appender_name, nullptr);
                 meta_key = current_logger_name + " " + current_appender_name;
                 appender_meta_cache[meta_key] = appender_meta();
             }
         }
         return state::FINISHED;
     default:
-        if (logger::sploggers_.find(current_logger_name) == logger::sploggers_.end()) return state::FAILED;
+        if (_Get_internal_loggers_map().find(current_logger_name) == _Get_internal_loggers_map().end()) return state::FAILED;
         return state::LOGGER;
     }
     return state::FAILED;
@@ -563,16 +570,16 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_appender(co
             if (appender_meta_cache.find(meta_key) == appender_meta_cache.end() 
                 || appender_meta_cache[meta_key].at != appender_type::STREAM_APPENDER) return state::FAILED;
             if (stream_types.find(value) == stream_types.end()) return state::FAILED;
-            logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new stream_log_appender(stream_types.at(value))));
+            _Get_internal_loggers_map()[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new stream_log_appender(stream_types.at(value))));
             return state::FINISHED;
         } else if (element == "file") {
             if (appender_meta_cache.find(meta_key) == appender_meta_cache.end() 
                 || (appender_meta_cache[meta_key].at != appender_type::FSTREAM_APPENDER 
                     && appender_meta_cache[meta_key].at != appender_type::ROLLING_FSTREAM_APPENDER)) return state::FAILED;
             if (appender_meta_cache[meta_key].at == appender_type::FSTREAM_APPENDER) {
-                logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new fstream_log_appender(value)));
+                _Get_internal_loggers_map()[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new fstream_log_appender(value)));
             } else {
-                logger::sploggers_[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new rolling_fstream_log_appender(value)));
+                _Get_internal_loggers_map()[current_logger_name]->add_appender(current_log_appender_name, log_appender::ptr(new rolling_fstream_log_appender(value)));
             }
             return state::FINISHED;
         } else if (element == "threshold") {
@@ -607,9 +614,9 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(c
     case 5:
         if (element != "conversion_pattern") return state::FAILED;
         if (appender_meta_cache.find(meta_key) == appender_meta_cache.end()) return state::FAILED;
-        if (logger::sploggers_[current_logger_name]->pappenders_[current_log_appender_name] == nullptr) return state::FAILED;
+        if (_Get_internal_loggers_map()[current_logger_name]->pappenders_[current_log_appender_name] == nullptr) return state::FAILED;
         if (appender_meta_cache[meta_key].ft != formatter_type::PATTERN_FORMATTER) return state::FAILED;
-        logger::sploggers_[current_logger_name]->pappenders_[current_log_appender_name]->set_formatter(log_formatter::ptr(new pattern_log_formatter(value)));
+        _Get_internal_loggers_map()[current_logger_name]->pappenders_[current_log_appender_name]->set_formatter(log_formatter::ptr(new pattern_log_formatter(value)));
         return state::FINISHED;
     default:
         return state::FAILED;
@@ -617,6 +624,9 @@ logger::_Properties_parser::state logger::_Properties_parser::_Parse_formatter(c
     return state::FAILED;
 }
 
-::std::unordered_map<::std::string, logger::ptr> logger::sploggers_;
+::std::unordered_map<::std::string, logger::ptr> &logger::_Get_internal_loggers_map() _SW_NOEXCEPT {
+    static ::std::unordered_map<::std::string, logger::ptr> sploggers;
+    return sploggers;
+}
 
 _SW_END
