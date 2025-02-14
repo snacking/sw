@@ -3,7 +3,7 @@
 #ifndef _SW_TASK_CORE_H_
 #define _SW_TASK_CORE_H_
 
-#include "internal/sw_vals.h"
+#include "sw_vals.h"
 
 #include <cstdint>
 #include <future>
@@ -63,6 +63,6 @@ private:
 
 _SW_END // _SW_BEGIN
 
-#include "internal/sw_task_core.ipp"
+#include "sw/internal/sw_task_core.ipp"
 
 #endif // _SW_TASK_CORE_H_

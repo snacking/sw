@@ -4,10 +4,9 @@
 #define _SW_THREADPOOL_H_
 
 #include "internal/sw_vals.h"
-
-#include "sw_queue_core.hpp"
-#include "sw_task_core.hpp"
-#include "sw_thread.hpp"
+#include "internal/sw_queue_core.hpp"
+#include "internal/sw_task_core.hpp"
+#include "internal/sw_thread.hpp"
 
 #include <atomic>
 #include <cassert>

@@ -1,6 +1,6 @@
 // implementation file for sw::task_core and derived (internal)
 
-#include "sw_task_core.hpp"
+#include "sw/internal/sw_task_core.hpp"
 
 _SW_BEGIN
 

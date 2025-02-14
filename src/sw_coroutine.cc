@@ -1,6 +1,6 @@
 // implementation file for sw::coroutine and derived (internal)
 
-#include "sw_coroutine.hpp"
+#include "sw/internal/sw_coroutine.hpp"
 
 _SW_BEGIN
 

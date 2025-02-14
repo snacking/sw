@@ -1,6 +1,6 @@
 // implementation file for sw::properties (internal)
 
-#include "sw_properties.hpp"
+#include "sw/sw_properties.hpp"
 
 _SW_BEGIN
 

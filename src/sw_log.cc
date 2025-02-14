@@ -1,6 +1,6 @@
 // implementation file for sw_log.h
 
-#include "sw_log.hpp"
+#include "sw/sw_log.hpp"
 
 _SW_BEGIN
 

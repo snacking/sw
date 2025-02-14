@@ -1,7 +1,8 @@
 // implementation file for sw::_Thread_base and derived (internal)
 
-#include "sw_thread.hpp"
-#include "sw_threadpool.hpp"
+#include "sw/internal/sw_thread.hpp"
+
+#include "sw/sw_threadpool.hpp"
 
 _SW_BEGIN
 

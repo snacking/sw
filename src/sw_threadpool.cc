@@ -1,6 +1,6 @@
 // implementation file for sw::threadpool (internal)
 
-#include "sw_threadpool.hpp"
+#include "sw/sw_threadpool.hpp"
 
 _SW_BEGIN
 

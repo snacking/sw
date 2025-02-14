@@ -20,7 +20,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(sw)
 
-set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/sw)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(LIBRARY_NAME "sw")
