@@ -23,6 +23,11 @@ void stopwatch<_Ct, _Dr>::pause() _SW_NOEXCEPT {
 }
 
 template <typename _Ct, typename _Dr>
+bool stopwatch<_Ct, _Dr>::is_paused() const _SW_NOEXCEPT {
+    return paused_;
+}
+
+template <typename _Ct, typename _Dr>
 void stopwatch<_Ct, _Dr>::resume() _SW_NOEXCEPT {
     start_ = _Ct::now();
     paused_ = false;
@@ -38,12 +43,12 @@ template <typename _Ct, typename _Dr>
 }
 
 template <typename _Ct, typename _Dr, typename _Cb>
-counter<_Ct, _Dr, _Cb>::counter(const std::string &key, callback_type &&callback) _SW_NOEXCEPT :
+counter<_Ct, _Dr, _Cb>::counter(const std::string& key, callback_type&& callback) _SW_NOEXCEPT :
         key_(key), callback_(callback) {
     }
 
 template <typename _Ct, typename _Dr, typename _Cb>
-counter<_Ct, _Dr, _Cb>::~counter() _SW_NOEXCEPT {
+counter<_Ct, _Dr, _Cb>::~counter() {
     callback_(key_, stopwatch_.elapsed());
 }
 

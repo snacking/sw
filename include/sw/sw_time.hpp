@@ -24,6 +24,8 @@ public:
 
     inline void pause() _SW_NOEXCEPT;
 
+    inline bool is_paused() const _SW_NOEXCEPT;
+
     inline void resume() _SW_NOEXCEPT;
 
     ::std::uint64_t elapsed() const _SW_NOEXCEPT;
@@ -35,7 +37,7 @@ private:
 
 template <typename _Ct, 
     typename _Dr = ::std::chrono::milliseconds,
-        typename _Cb = ::std::function<void(const ::std::string&, ::std::uint64_t)> >
+        typename _Cb = ::std::function<void(const ::std::string &, ::std::uint64_t)> >
 class counter {
 public:
     using stopwatch_type = stopwatch<_Ct, _Dr>;
@@ -43,7 +45,7 @@ public:
 
     explicit counter(const std::string &, callback_type &&) _SW_NOEXCEPT;
 
-    ~counter() _SW_NOEXCEPT;
+    ~counter();
 private:
     stopwatch_type stopwatch_;
     callback_type callback_;
