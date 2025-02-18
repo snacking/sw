@@ -42,7 +42,10 @@ inline void threadpool::_Init() _SW_NOEXCEPT {
 
 inline void threadpool::_Close() _SW_NOEXCEPT {
     pthreads_[0]->stop();
-    state_ = _State::TERMINATED;
+    {
+        ::std::lock_guard<std::mutex> lock(mutex_);
+        state_ = _State::TERMINATED;
+    }
     return;
 }
 

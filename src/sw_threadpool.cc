@@ -17,20 +17,32 @@ threadpool::ptr threadpool::create(threadpool_settings ts) _SW_NOEXCEPT {
 }
 
 threadpool::~threadpool() _SW_NOEXCEPT {
-    if (state_ == _State::RUNNING) {
+    if (::std::lock_guard<std::mutex> lock(mutex_); state_ == _State::RUNNING) {
         _Close();
     }
 }
 
 void threadpool::shutdown() _SW_NOEXCEPT {
-    state_ = _State::STOPPING;
+    {
+        ::std::lock_guard<std::mutex> lock(mutex_);
+        if (state_ != _State::RUNNING) {
+            return;
+        }
+        state_ = _State::STOPPING;
+    }
     join();
     _Close();
     return;
 }
 
 ::std::vector<threadpool::task_ptr> threadpool::shutdown_now() _SW_NOEXCEPT {
-    state_ = _State::STOPPING;
+    {
+        ::std::lock_guard<std::mutex> lock(mutex_);
+        if (state_ != _State::RUNNING) {
+            return {};
+        }
+        state_ = _State::STOPPING;
+    }
     _Close();
     ::std::vector<threadpool::task_ptr> remains;
     while (!pqueue_->empty()) {
