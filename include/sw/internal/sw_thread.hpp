@@ -34,6 +34,7 @@ public:
 	virtual void stop() = 0;
 
 	enum class _State : ::std::uint8_t {
+		INIT,
 		IDLE,
 		RUNNING,
 		SLEEPING,
@@ -51,6 +52,7 @@ protected:
 
 #ifdef _SW_DEBUG_
 	constexpr static const char* state_str[] = {
+		"INIT",
 		"IDLE",
 		"RUNNING",
 		"SLEEPING",

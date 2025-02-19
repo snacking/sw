@@ -7,7 +7,7 @@
 _SW_BEGIN
 
 _Thread_base::_Thread_base(_Thread_base::threadpool_ptr ptp) _SW_NOEXCEPT : 
-	state_(_State::IDLE), ptp_(::std::move(ptp)) {}
+	state_(_State::INIT), ptp_(::std::move(ptp)) {}
 
 _Thread_base::_State _Thread_base::state() _SW_NOEXCEPT {
     ::std::shared_lock<::std::shared_mutex> lock(mutex_);
@@ -18,25 +18,44 @@ _Leader::_Leader(_Thread_base::threadpool_ptr ptp) _SW_NOEXCEPT :
 	_Thread_base(::std::move(ptp)) {}
 
 void _Leader::start() _SW_NOEXCEPT {
+    {
+        ::std::unique_lock<::std::shared_mutex> lock(mutex_);
+        if (state_ != _State::INIT) {
+            return;
+        }
+        state_ = _State::IDLE;
+    }
     thread_ = ::std::thread(&_Leader::run, this);
     id_ = thread_.get_id();
-    state_ = _State::RUNNING;
     return;
 }
 
 void _Leader::stop() _SW_NOEXCEPT {
-    state_ = _State::STOPPING;
+    {
+        ::std::unique_lock<::std::shared_mutex> lock(mutex_);
+        if (state_ != _State::RUNNING) {
+            return;
+        }
+        state_ = _State::STOPPING;
+    }
     auto ptp = ptp_.lock();
     for (::std::size_t i = 1; i < ptp->pthreads_.size(); ++i) {
         ptp->cv_.notify_all();
         ptp->pthreads_[i]->stop();
     }
     thread_.join();
-    state_ = _State::STOPPED;
+    {
+        ::std::unique_lock<::std::shared_mutex> lock(mutex_);
+        state_ = _State::STOPPED;
+    }
     return;
 }
 
 void _Leader::run() _SW_NOEXCEPT {
+    {
+        ::std::unique_lock<::std::shared_mutex> lock(mutex_);
+        state_ = _State::RUNNING;
+    }
     auto ptp = ptp_.lock();
     while (state_ != _State::STOPPING && state_ != _State::STOPPED) {
         ::std::unique_lock<::std::mutex> lock(ct_mutex_);
@@ -59,9 +78,15 @@ _Worker::_Worker(_Thread_base::threadpool_ptr ptp, bool is_core) _SW_NOEXCEPT :
 	_Thread_base(::std::move(ptp)), is_core_(is_core) {}
 
 void _Worker::start() _SW_NOEXCEPT {
+    {
+        ::std::unique_lock<::std::shared_mutex> lock(mutex_);
+        if (state_ != _State::INIT) {
+            return;
+        }
+        state_ = _State::IDLE;
+    }
     thread_ = ::std::thread(&_Worker::run, this);
     id_ = thread_.get_id();
-    state_ = _State::IDLE;
     return;
 }
 
