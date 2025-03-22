@@ -124,8 +124,4 @@ _SW_END // _SW_BEGIN
 
 #include "internal/sw_threadpool.ipp"
 
-#ifdef _SW_HEADER_ONLY_
-	#include "sw_threadpool.cc"
-#endif // _SW_HEADER_ONLY_
-
 #endif // _SW_THREADPOOL_H_
