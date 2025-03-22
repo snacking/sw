@@ -92,7 +92,7 @@
 
 	#define SW_ASSERT(expr) \
 		if (!(expr)) { \
-			
+			assert(expr); \
 		}
 #else
 	#define REGISTER_SW_ERROR(code, msg)

@@ -3,8 +3,8 @@
 #ifndef _SW_THREAD_H_
 #define _SW_THREAD_H_
 
-#include "sw_vals.h"
-#include "sw_task_core.hpp"
+#include "sw/internal/sw_vals.h"
+#include "sw/internal/sw_task_core.hpp"
 
 #include "sw/sw_time.hpp"
 

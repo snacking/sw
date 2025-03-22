@@ -1,7 +1,6 @@
 *.out
 *.obj
 *.exe
-**/test/**
 **/lib/**
 **/build/**
 **/bin/**

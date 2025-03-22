@@ -3,7 +3,7 @@
 #ifndef _SW_COROUTINE_H_
 #define _SW_COROUTINE_H_
 
-#include "sw_vals.h"
+#include "sw/internal/sw_vals.h"
 
 _SW_BEGIN
 

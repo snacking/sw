@@ -3,7 +3,9 @@
 #ifndef _SW_LOG_H_
 #define _SW_LOG_H_
 
-#include "internal/sw_vals.h"
+#include "sw/internal/sw_vals.h"
+
+#include "sw/utils/sw_string_utils.hpp"
 
 #include "sw_properties.hpp"
 #include "sw_time.hpp"

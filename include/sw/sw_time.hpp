@@ -3,7 +3,7 @@
 #ifndef _SW_TIME_H_
 #define _SW_TIME_H_
 
-#include "internal/sw_vals.h"
+#include "sw/internal/sw_vals.h"
 
 #include <chrono>
 #include <cstdint>

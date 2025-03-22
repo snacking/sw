@@ -3,13 +3,14 @@
 #ifndef _SW_PROPERTIES_H_
 #define _SW_PROPERTIES_H_
 
-#include "internal/sw_vals.h"
+#include "sw/internal/sw_vals.h"
+
+#include "sw/utils/sw_string_utils.hpp"
 
 #include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -62,10 +63,6 @@ private:
     ::std::unordered_map<::std::string, ::std::size_t> map_;
     value_type value_;
 };
-
-::std::vector<::std::string> split(const ::std::string&, char) _SW_NOEXCEPT;
-
-::std::string trim(const ::std::string&) _SW_NOEXCEPT;
 
 _SW_END // _SW_BEGIN
 

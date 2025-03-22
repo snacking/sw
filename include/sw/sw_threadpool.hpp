@@ -3,10 +3,10 @@
 #ifndef _SW_THREADPOOL_H_
 #define _SW_THREADPOOL_H_
 
-#include "internal/sw_vals.h"
-#include "internal/sw_queue_core.hpp"
-#include "internal/sw_task_core.hpp"
-#include "internal/sw_thread.hpp"
+#include "sw/internal/sw_vals.h"
+#include "sw/internal/sw_queue_core.hpp"
+#include "sw/internal/sw_task_core.hpp"
+#include "sw/internal/sw_thread.hpp"
 
 #include <atomic>
 #include <cassert>
