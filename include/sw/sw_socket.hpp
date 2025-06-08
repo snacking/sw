@@ -66,9 +66,9 @@ enum class socket_error : ::std::uint8_t {
     unknown_error
 };
 
-socket_error get_socket_error();
+socket_error get_socket_error() _SW_NOEXCEPT;
 
-::std::string get_socket_error_string(socket_error);
+::std::string get_socket_error_string(socket_error) _SW_NOEXCEPT;
 
 ::std::string get_socket_error_platform_string(int);
 
@@ -76,7 +76,7 @@ class socket_exception : public ::std::runtime_error {
 public:
     socket_exception(socket_error, const ::std::string&);
 
-    socket_error get_error_code() const;
+    socket_error get_error_code() const _SW_NOEXCEPT;
 private:
     socket_error error_code_;
 };
@@ -90,9 +90,9 @@ public:
     explicit socket(protocol_type, bool, socket_type);
     ~socket();
     socket(const socket&) = delete;
-    socket(socket&&);
+    socket(socket&&) _SW_NOEXCEPT;
     socket& operator=(socket&) = delete;
-    socket& operator=(socket&&);
+    socket& operator=(socket&&) _SW_NOEXCEPT;
 
     void bind(const ::std::string&, ::std::uint16_t);
     void listen(int);

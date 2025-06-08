@@ -4,7 +4,7 @@
 
 _SW_BEGIN
 
-socket_error get_socket_error() {
+socket_error get_socket_error() _SW_NOEXCEPT {
     const int error = GET_SOCKET_ERROR();
     switch (error) {
 #if defined(_WIN32) || defined(_M_X64)
@@ -51,7 +51,7 @@ socket_error get_socket_error() {
     }
 }
 
-::std::string get_socket_error_string(socket_error error) {
+::std::string get_socket_error_string(socket_error error) _SW_NOEXCEPT {
     static const std::unordered_map<socket_error, ::std::string> error_strings = {
         {socket_error::success,                       "Operation succeeded"},
         {socket_error::interrupted,                   "Operation interrupted by signal"},
@@ -80,7 +80,7 @@ socket_error get_socket_error() {
 socket_exception::socket_exception(socket_error error_code, const ::std::string& msg)
     : ::std::runtime_error(msg), error_code_(error_code) {}
 
-socket_error socket_exception::get_error_code() const {
+socket_error socket_exception::get_error_code() const _SW_NOEXCEPT {
     return error_code_;
 }
 
@@ -148,6 +148,23 @@ socket::~socket() {
 #endif // defined(__linux__)
     }
     return;
+}
+
+socket::socket(socket&& other) _SW_NOEXCEPT {
+    protocol_ = other.protocol_;
+    blocking_ = other.blocking_;
+    socket_ = other.socket_;
+    other.socket_ = INVALID_SOCKET_VAL;
+}
+
+socket& socket::operator=(socket&& other) _SW_NOEXCEPT {
+    if (this != &other) {
+        protocol_ = other.protocol_;
+        blocking_ = other.blocking_;
+        socket_ = other.socket_;
+        other.socket_ = INVALID_SOCKET_VAL;
+    }
+    return *this;
 }
 
 void socket::bind(const ::std::string& ip, ::std::uint16_t port) {
