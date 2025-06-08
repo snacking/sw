@@ -44,26 +44,26 @@ enum class protocol_type : ::std::uint8_t {
 };
 
 enum class socket_error : ::std::uint8_t {
-    success = 0,
-    interrupted,
-    bad_file_descriptor,
-    access_denied,
-    invalid_argument,
-    too_many_open_files,
-    would_block,
-    in_progress,
-    already_in_use,
-    connection_refused,
-    connection_reset,
-    connection_aborted,
-    not_connected,
-    timed_out,
-    message_too_long,
-    network_unreachable,
-    host_unreachable,
-    protocol_error,
-    address_family_not_supported,
-    unknown_error
+    SUNCCESS = 0,
+    INTERRUPTED,
+    BAD_FILE_DESCRIPTOR,
+    ACCESS_DENIED,
+    INVALID_ARGUMENT,
+    TOO_MANY_OPEN_FILES,
+    WOULD_BLOCK,
+    IN_PROGRESS,
+    ALREADY_IN_USE,
+    CONNECTION_REFUSED,
+    CONNECTION_RESET,
+    CONNECTION_ABORTED,
+    NOT_CONNECTED,
+    TIMED_OUT,
+    MESSAGE_TOO_LONG,
+    NETWORK_UNREACHABLE,
+    HOST_UNREACHABLE,
+    PROTOCOL_ERROR,
+    ADDRESS_FAMILY_NOT_SUPPORTED,
+    UNKNOWN_ERROR
 };
 
 socket_error get_socket_error() _SW_NOEXCEPT;
