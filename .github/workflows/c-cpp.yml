@@ -35,8 +35,8 @@ jobs:
       - name: Configure CMake
         run: cmake -S . -B build
 
-      - name: Build project
-        run: cmake --build build --config Release
+      - name: Build static library (libsw.a)
+        run: cmake --build build --config Release --target sw_static
 
       - name: Run tests
         run: |
